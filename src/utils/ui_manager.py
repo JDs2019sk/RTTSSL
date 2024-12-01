@@ -25,8 +25,8 @@ class UIManager:
         overlay = frame.copy()
         return overlay
         
-    def add_status_bar(self, frame, mode, fps=None):
-        """Add a professional status bar with mode and FPS"""
+    def add_status_bar(self, frame, mode, fps=None, is_recording=False, face_mode=None):
+        """Add a professional status bar with mode, FPS, and status indicators"""
         height, width = frame.shape[:2]
         
         # Status bar background
@@ -37,6 +37,20 @@ class UIManager:
         mode_text = f"Mode: {mode.upper()}"
         cv2.putText(frame, mode_text, (10, height-15), self.font,
                    0.6, self.colors['secondary'], 2)
+        
+        # Face mode indicator (if in face mode)
+        if mode == "face" and face_mode:
+            face_text = f"Face Mode: {face_mode}"
+            face_size = cv2.getTextSize(face_text, self.font, 0.6, 2)[0]
+            cv2.putText(frame, face_text, (180, height-15), self.font,
+                       0.6, self.colors['secondary'], 2)
+        
+        # Recording indicator
+        if is_recording:
+            rec_text = "Recording"
+            rec_size = cv2.getTextSize(rec_text, self.font, 0.6, 2)[0]
+            cv2.putText(frame, rec_text, (width-rec_size[0]-150, height-15),
+                       self.font, 0.6, self.colors['warning'], 2)
         
         # FPS counter
         if fps is not None:

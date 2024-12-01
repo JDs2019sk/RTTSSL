@@ -117,7 +117,10 @@ class RTTSSL:
                 # Add status bar
                 frame = self.ui_manager.add_status_bar(
                     frame, self.active_mode,
-                    fps=metrics['fps'] if self.show_fps else None
+                    fps=metrics['fps'] if self.show_fps else None,
+                    is_recording=self.recording,
+                    face_mode="Mesh" if self.active_mode == "face" and self.face_detector.mode == "mesh" else
+                             "Iris" if self.active_mode == "face" and self.face_detector.mode == "iris" else None
                 )
                 
                 # Show current translation
@@ -152,11 +155,11 @@ class RTTSSL:
                 self.performance_monitor.end_frame()
                 
         except KeyboardInterrupt:
-            print("\nPrograma encerrado pelo usuário.")
+            print("\nProgramme Closed.")
         except Exception as e:
-            print(f"\nErro inesperado: {e}")
+            print(f"\nError: {e}")
         finally:
-            print("\nLimpando recursos...")
+            print("\nCleaning...")
             # Cleanup video writer if recording
             if hasattr(self, 'video_writer'):
                 self.video_writer.release()
@@ -166,7 +169,7 @@ class RTTSSL:
             cap.release()
             # Close all windows
             cv2.destroyAllWindows()
-            print("Programa encerrado com sucesso.")
+            print("Programme closed.")
 
     def _update_translation(self, translation):
         """Update current translation and reset timer"""
