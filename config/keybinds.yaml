@@ -1,0 +1,44 @@
+keybinds:
+  letter_mode: "1"
+  word_mode: "2"
+  gesture_mode: "3"
+  mouse_control: "m"
+  face_detection: "f"
+  toggle_detection_mode: "e"
+  name_face: "n"
+  toggle_fps: "tab"
+  toggle_performance: "p"
+  toggle_recording: "r"
+  help_menu: "h"
+  exit: "esc"
+
+modes:
+  letter:
+    enabled: true
+    description: "Translate sign language letters"
+
+  word:
+    enabled: true
+    description: "Translate sign language words"
+
+  gesture:
+    enabled: true
+    description: "Recognize and translate gestures"
+
+  mouse:
+    enabled: true
+    description: "Control mouse with hand gestures"
+
+  face:
+    enabled: true
+    submodes:
+      - mesh
+      - iris
+    description: "Face detection and recognition"
+
+performance:
+  target_fps: 30
+  enable_threading: true
+  enable_gpu: true
+  optimize_resolution: true
+  notification_duration: 3.0 # seconds

@@ -1,0 +1,8 @@
+mediapipe
+opencv-python
+numpy
+tensorflow
+scikit-learn
+keyboard
+mouse
+PyYAML
