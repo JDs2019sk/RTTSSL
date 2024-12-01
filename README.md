@@ -81,7 +81,7 @@ python train.py --mode image --dataset path/to/dataset
 python train.py --mode realtime
 ```
 
-#### See [TRAINING](docs/TRAINING.md) for more information
+#### See [TRAINING](docs/TRAINING.md) for more information.
 
 ## 🔍 Troubleshooting
 
