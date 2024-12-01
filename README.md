@@ -12,6 +12,7 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
   - Eye iris tracking
   - Face recognition with name assignment
 - Real-time model training capabilities
+- Record you Translations
 
 ## 🔤 Requirements
 
@@ -21,7 +22,7 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 
 ## 🛠️ Installation
 
-1. Clone the repository:q
+1. Clone the repository:
 
 ```bash
 git clone https://github.com/JDs2019sk/RTTSSL.git
@@ -62,7 +63,7 @@ python main.py
 | N   | Assign name to detected face                                             |
 | Tab | Toggle FPS display                                                       |
 | P   | Toggle Performance Stats                                                 |
-| R   | Toggle Recording                                                         |
+| R   | Start Recording                                                          |
 | H   | Show help menu                                                           |
 | Esc | Exit program                                                             |
 
@@ -79,6 +80,8 @@ python train.py --mode image --dataset path/to/dataset
 ```bash
 python train.py --mode realtime
 ```
+
+#### See [TRAINING](docs/TRAINING.md) for more information
 
 ## 🔍 Troubleshooting
 
@@ -106,17 +109,22 @@ python train.py --mode realtime
 
 ```
 RTTSSL/
-├── main.py              # Main program entry point
-├── config/             # Configuration files
-├── src/                # Source code
-│   ├── gesture/        # Gesture recognition modules
-│   ├── face/           # Face detection modules
-│   ├── mouse/          # Mouse control modules
-│   └── utils/          # Utility functions
-├── models/             # Trained models
-├── datasets/           # Training datasets
-└── tests/              # Unit tests
+├── main.py                # Main program entry point
+├── config/                # Configuration files
+├── src/                   # Source code
+│   ├── gesture/           # Gesture recognition modules
+│   ├── face/              # Face detection modules
+│   ├── mouse/             # Mouse control modules
+│   └── utils/             # Utility functions
+├── models/                # Trained models
+├── datasets/              # Training datasets
+├── recordings/            # Recording Files
+├── data/                  # Data files
+│   └── face_names.json    # Save the names assigned to the faces
+└── tests/                 # Unit tests
 ```
+
+#### The folders `models/ datasets/ recordings/ data/ tests/` will be created when you use certain features of the program (or you can create them yourself)
 
 ## 📄 License
 
