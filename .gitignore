@@ -41,6 +41,7 @@ trained_models/
 recordings/
 *.json
 data/
+prints/
 
 # System
 .DS_Store
