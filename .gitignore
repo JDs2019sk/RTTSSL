@@ -39,7 +39,7 @@ datasets/
 logs/
 trained_models/
 recordings/
-.json
+*.json
 data/
 
 # System
