@@ -40,6 +40,7 @@ logs/
 trained_models/
 recordings/
 .json
+data/
 
 # System
 .DS_Store
