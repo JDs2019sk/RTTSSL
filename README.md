@@ -6,128 +6,106 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 
 - Real-time gesture recognition and translation
 - Sign language letter and word detection
-- Hand-controlled mouse movement
+- Interactive model training interface
+- Hand landmark detection and tracking
 - Advanced facial detection:
   - Face mesh detection
   - Eye iris tracking
   - Face recognition with name assignment
 - Real-time model training capabilities
-- Record you Translations
+- Record your Translations
+- Automatic model versioning and backup
 
 ## 🔤 Requirements
 
-- Python 3.8+
-- Webcam
+- Python 3.8-3.11 (TensorFlow compatibility)
+- Webcam with good resolution
 - Required packages listed in `requirements.txt`
+- GPU recommended for faster training
 
 ## 🛠️ Installation
 
 1. Clone the repository:
-
-```bash
-git clone https://github.com/JDs2019sk/RTTSSL.git
-cd RTTSSL
-```
+   ```bash
+   git clone https://github.com/JDs2019sk/RTTSSL.git
+   cd RTTSSL
+   ```
 
 2. Create and activate a virtual environment (recommended):
-
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
 3. Install required packages:
-
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## 📚 Usage
 
-Run the main program:
+1. Test your camera setup:
+   ```bash
+   python test_camera.py
+   ```
 
-```bash
-python main.py
-```
+2. Train the gesture recognition model:
+   ```bash
+   python -m src.gesture.model_trainer
+   ```
+   Follow the on-screen instructions for training. See `docs/TRAINING.md` for detailed guidance.
 
-## 🎮 Default Keybinds
+3. Run the main program:
+   ```bash
+   python main.py
+   ```
 
-| Key | Function                                                                 |
-| --- | ------------------------------------------------------------------------ |
-| 1   | Switch to letter translation mode                                        |
-| 2   | Switch to word translation mode                                          |
-| 3   | Switch to gesture translation mode                                       |
-| M   | Enable/disable mouse control mode                                        |
-| F   | Enable/disable face detection mode                                       |
-| E   | Switch between face mesh and eye iris detection (in face detection mode) |
-| N   | Assign name to detected face                                             |
-| Tab | Toggle FPS display                                                       |
-| P   | Toggle Performance Stats                                                 |
-| R   | Start Recording                                                          |
-| H   | Show help menu                                                           |
-| Esc | Exit program                                                             |
-
-## 📊 Training
-
-### Image-based Training
-
-```bash
-python train.py --mode image --dataset path/to/dataset
-```
-
-### Real-time Training
-
-```bash
-python train.py --mode realtime
-```
-
-#### See [TRAINING](docs/TRAINING.md) for more information.
-
-## 🔍 Troubleshooting
-
-### Common Issues
-
-1. Poor Recognition
-
-   - Retrain with more diverse data
-   - Check lighting conditions
-   - Adjust confidence thresholds
-
-2. Performance Issues
-
-   - Lower camera resolution
-   - Reduce FPS
-   - Check system resources
-
-3. Camera Problems
-
-   - Verify camera permissions
-   - Check USB connections
-   - Update drivers
-
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```
 RTTSSL/
-├── main.py                # Main program entry point
-├── config/                # Configuration files
-├── src/                   # Source code
+├── src/
 │   ├── gesture/           # Gesture recognition modules
-│   ├── face/              # Face detection modules
-│   ├── mouse/             # Mouse control modules
-│   └── utils/             # Utility functions
-├── models/                # Trained models
-├── datasets/              # Training datasets
-├── recordings/            # Recording Files
-├── data/                  # Data files
-│   └── face_names.json    # Save the names assigned to the faces
-└── tests/                 # Unit tests
+│   ├── face/             # Face detection modules
+│   └── utils/            # Utility functions
+├── models/               # Trained models
+├── docs/                 # Documentation
+│   └── TRAINING.md       # Training guide
+├── test_camera.py        # Camera testing utility
+└── requirements.txt      # Package dependencies
 ```
 
-#### The folders `models/ datasets/ recordings/ data/ tests/` will be created when you use certain features of the program (or you can create them yourself)
+## 🔄 Training Process
 
-## 📄 License
+1. **Camera Test**
+   - Run `test_camera.py` to verify your setup
+   - Check FPS and resolution
+   - Test image capture functionality
 
-This project is under the MIT License - see the [LICENSE](LICENSE) file for details.
+2. **Model Training**
+   - Interactive training interface
+   - Real-time sample collection
+   - Automatic model versioning
+   - Progress tracking and validation
 
-## 📜 Created by Joel Dias (PAP Project TIIGR 22/25)
+3. **Model Management**
+   - Automatic saving of trained models
+   - Version control with timestamps
+   - Performance metrics tracking
+   - Easy model updating
+
+See `docs/TRAINING.md` for detailed training instructions.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit pull requests.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- MediaPipe for hand landmark detection
+- TensorFlow and Keras teams
+- OpenCV community
