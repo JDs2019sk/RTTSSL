@@ -38,15 +38,26 @@ class ModelTrainer:
         print("Saving model and labels...")
         self._save_model()
         
-    def train_realtime(self, num_samples=100, num_classes=5):
+    def train_realtime(self, num_samples=100, num_classes=5, class_names=None):
         """Train model using real-time captured data"""
         cap = cv2.VideoCapture(0)
         
-        for class_idx in range(num_classes):
-            class_name = input(f"Enter name for class {class_idx + 1}: ")
-            self.labels.append(class_name)
+        if not cap.isOpened():
+            print("Error: Could not open camera")
+            return
             
-            print(f"Capturing samples for {class_name}...")
+        if class_names is None:
+            class_names = []
+            for class_idx in range(num_classes):
+                class_name = input(f"Enter name for class {class_idx + 1}: ")
+                class_names.append(class_name)
+        
+        self.labels = class_names
+        
+        for class_idx, class_name in enumerate(class_names):
+            print(f"\nCapturing samples for {class_name}...")
+            print("Show your hand gesture to the camera")
+            print("Press ESC to skip to next class")
             samples_captured = 0
             
             while samples_captured < num_samples:
@@ -66,22 +77,36 @@ class ModelTrainer:
                     samples_captured += 1
                     
                     # Display progress
-                    cv2.putText(frame, f"Samples: {samples_captured}/{num_samples}",
+                    cv2.putText(frame, f"{class_name}: {samples_captured}/{num_samples}",
                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                     
+                # Show hand detection
+                if results.multi_hand_landmarks:
+                    for hand_landmarks in results.multi_hand_landmarks:
+                        mp.solutions.drawing_utils.draw_landmarks(
+                            frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+                
                 cv2.imshow("Capture", frame)
-                if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
+                key = cv2.waitKey(1) & 0xFF
+                if key == 27:  # ESC
                     break
+                    
+            print(f"Captured {samples_captured} samples for {class_name}")
                     
         cap.release()
         cv2.destroyAllWindows()
         
-        print("Creating and training model...")
+        if len(self.training_data) < num_classes:
+            print("\nNot enough samples collected for all classes")
+            return
+            
+        print("\nCreating and training model...")
         self._create_model()
         self._train_model()
         
-        print("Saving model and labels...")
+        print("\nSaving model and labels...")
         self._save_model()
+        print("Training completed successfully!")
         
     def _load_dataset(self, dataset_path):
         """Load and process image dataset"""
