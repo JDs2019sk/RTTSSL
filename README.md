@@ -111,7 +111,7 @@ RTTSSL/
 │   └── TRAINING.md       # Training guide
 ├── logs/                 # Log files from training and execution
 ├── models/               # Trained models
-├── recordings            # Recorded video files
+├── recordings/           # Recorded video files
 ├── src/                  # Source code directory
 │   ├── gesture/          # Gesture recognition modules
 │   ├── face/             # Face detection modules
