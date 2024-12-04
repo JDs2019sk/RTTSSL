@@ -207,8 +207,87 @@ class RTTSSL:
                 cv2.imshow(self.window_name, frame)
                 
                 # Handle keyboard events
-                self._handle_keyboard()
+                keybinds = self.config['keybinds']
+                modes = self.config['modes']
                 
+                if keyboard.is_pressed(keybinds['letter_mode']) and self._can_press_key('letter_mode'):
+                    if modes['letter']['enabled']:
+                        self.active_mode = "letter"
+                        self.gesture_recognizer.set_mode("letter")
+                        self._show_notification("Letter Translation Mode", 'info')
+                    
+                elif keyboard.is_pressed(keybinds['word_mode']) and self._can_press_key('word_mode'):
+                    if modes['word']['enabled']:
+                        self.active_mode = "word"
+                        self.gesture_recognizer.set_mode("word")
+                        self._show_notification("Word Translation Mode", 'info')
+                    
+                elif keyboard.is_pressed(keybinds['gesture_mode']) and self._can_press_key('gesture_mode'):
+                    if modes['gesture']['enabled']:
+                        self.active_mode = "gesture"
+                        self.gesture_recognizer.set_mode("gesture")
+                        self._show_notification("Gesture Recognition Mode", 'info')
+                    
+                # Mouse control
+                elif keyboard.is_pressed(keybinds['mouse_control']) and self._can_press_key('mouse_control'):
+                    if modes['mouse']['enabled']:
+                        self.active_mode = "mouse" if self.active_mode != "mouse" else "gesture"
+                        self._show_notification(
+                            "Mouse Control Enabled" if self.active_mode == "mouse" else "Mouse Control Disabled",
+                            'info'
+                        )
+                    
+                # Face detection
+                elif keyboard.is_pressed(keybinds['face_detection']) and self._can_press_key('face_detection'):
+                    if modes['face']['enabled']:
+                        self.active_mode = "face" if self.active_mode != "face" else "gesture"
+                        self._show_notification(
+                            "Face Detection Enabled" if self.active_mode == "face" else "Face Detection Disabled",
+                            'info'
+                        )
+                    
+                # Toggle detection mode (face mesh/iris)
+                elif keyboard.is_pressed(keybinds['toggle_detection_mode']) and self._can_press_key('toggle_detection'):
+                    if self.active_mode == "face" and modes['face']['enabled']:
+                        self.face_detector.toggle_mode()
+                        current_mode = self.face_detector.get_mode()
+                        self._show_notification(f"Face Detection Mode: {current_mode.capitalize()}", 'info')
+                        
+                # Name face
+                elif keyboard.is_pressed(keybinds['name_face']) and self._can_press_key('name_face'):
+                    if self.active_mode == "face" and modes['face']['enabled']:
+                        self.running = False
+                        name = input("Enter name for the face: ")
+                        if name.strip():
+                            if self.face_detector.add_face(frame, name):
+                                self._show_notification(f"Face named: {name}", 'info')
+                            else:
+                                self._show_notification("Failed to add face", 'warning')
+                        self.running = True
+                        
+                # Performance display
+                elif keyboard.is_pressed(keybinds['toggle_performance']) and self._can_press_key('toggle_performance'):
+                    self.show_performance = not self.show_performance
+                    
+                # FPS display
+                elif keyboard.is_pressed(keybinds['toggle_fps']) and self._can_press_key('toggle_fps'):
+                    self.show_fps = not self.show_fps
+                    
+                # Help menu
+                elif keyboard.is_pressed(keybinds['help_menu']) and self._can_press_key('help_menu'):
+                    self.show_help = not self.show_help
+                    
+                # Recording
+                elif keyboard.is_pressed(keybinds['toggle_recording']) and self._can_press_key('toggle_recording'):
+                    self.recording = not self.recording
+                    if not self.recording and hasattr(self, 'video_writer'):
+                        self.video_writer.release()
+                        delattr(self, 'video_writer')
+                    self._show_notification(
+                        "Recording Started" if self.recording else "Recording Stopped",
+                        'warning' if self.recording else 'info'
+                    )
+                    
                 if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
                     break
                     
@@ -330,15 +409,18 @@ class RTTSSL:
                 self._show_notification(f"Face Detection Mode: {current_mode.capitalize()}", 'info')
                 
         # Name face
-        elif keyboard.is_pressed(keybinds['name_face']) and self._can_press_key('name_face'):
-            if self.active_mode == "face" and modes['face']['enabled']:
-                self.running = False
-                name = input("Enter name for the face: ")
-                if name.strip():
-                    self.face_detector.add_face_name(len(self.face_detector.face_names), name)
-                    self._show_notification(f"Face named: {name}", 'info')
-                self.running = True
-                
+        # elif keyboard.is_pressed(keybinds['name_face']) and self._can_press_key('name_face'):
+        #     if self.active_mode == "face" and modes['face']['enabled']:
+        #         self.running = False
+        #         name = input("Enter name for the face: ")
+        #         if name.strip():
+        #             ret, frame = cap.read()  # Get current frame
+        #             if ret and self.face_detector.add_face(frame, name):
+        #                 self._show_notification(f"Face named: {name}", 'info')
+        #             else:
+        #                 self._show_notification("Failed to add face", 'warning')
+        #         self.running = True
+            
         # Performance display
         elif keyboard.is_pressed(keybinds['toggle_performance']) and self._can_press_key('toggle_performance'):
             self.show_performance = not self.show_performance

@@ -6,20 +6,16 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 
 - Real-time gesture recognition and translation
 - Sign language letter and word detection
-- Advanced facial detection:
-  - Face mesh detection
-  - Eye iris tracking
-  - Face recognition with name assignment
-- Real-time model training capabilities
-- Record your Translations
-- Automatic model versioning and backup
+- Facial Recognition
+- Model training capabilities
+- Recording method for your translations
 
 ## 🔤 Requirements
 
 - Python 3.8-3.11 (TensorFlow compatibility)
-- Webcam with good resolution
+- Webcam
 - Required packages listed in `requirements.txt`
-- GPU recommended for faster training
+- GPU is recommended for faster training
 
 ## 🛠️ Installation
 
@@ -67,32 +63,32 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
 
 ### Main Application Controls
 
-| Key   | Function              | Description                                     |
-| ----- | --------------------- | ----------------------------------------------- |
-| `1`   | Letter Mode           | Switch to sign language letter translation mode |
-| `2`   | Word Mode             | Switch to sign language word translation mode   |
-| `3`   | Gesture Mode          | Switch to gesture recognition mode              |
-| `M`   | Mouse Control         | Toggle hand gesture mouse control               |
-| `F`   | Face Detection        | Enable face detection and recognition           |
-| `E`   | Toggle Detection Mode | Switch between face mesh and iris detection     |
-| `N`   | Name Face             | Add or update name for detected face            |
-| `Tab` | Toggle FPS            | Show/hide FPS counter                           |
-| `P`   | Performance Monitor   | Show/hide performance statistics                |
-| `R`   | Recording             | Start/stop recording                            |
-| `H`   | Help Menu             | Show help and controls overlay                  |
-| `Esc` | Exit                  | Close the application                           |
+| Key   | Function            | Description                                     |
+| ----- | ------------------- | ----------------------------------------------- |
+| `1`   | Letter Mode         | Switch to sign language letter translation mode |
+| `2`   | Word Mode           | Switch to sign language word translation mode   |
+| `3`   | Gesture Mode        | Switch to gesture recognition mode              |
+| `M`   | Mouse Control       | Toggle hand gesture mouse control               |
+| `F`   | Face Detection      | Enable face detection and recognition           |
+| `E`   | Toggle Face Mode    | Cycle between mesh, iris, and recognition modes |
+| `N`   | New Face            | Add new face to recognition database            |
+| `Tab` | Toggle FPS          | Show/hide FPS counter                           |
+| `P`   | Performance Monitor | Show/hide performance statistics                |
+| `R`   | Recording           | Start/stop recording                            |
+| `H`   | Help Menu           | Show help and controls overlay                  |
+| `Esc` | Exit                | Close the application                           |
 
 ### Training Mode Controls
 
-| Key | Function           | Description                                  |
-| --- | ----------------- | -------------------------------------------- |
-| `G` | Gesture Mode      | Switch to gesture training mode              |
-| `L` | Letter Mode       | Switch to letter training mode               |
-| `W` | Word Mode         | Switch to word training mode                 |
-| `Q` | Quit              | Exit training mode                           |
-| `S` | Sample Recording  | Start/stop recording samples                 |
-| `T` | Train Model       | Start model training (requires 100+ samples) |
-| `N` | New Label         | Set a new label for recording                |
+| Key | Function         | Description                                  |
+| --- | ---------------- | -------------------------------------------- |
+| `G` | Gesture Mode     | Switch to gesture training mode              |
+| `L` | Letter Mode      | Switch to letter training mode               |
+| `W` | Word Mode        | Switch to word training mode                 |
+| `Q` | Quit             | Exit training mode                           |
+| `S` | Sample Recording | Start/stop recording samples                 |
+| `T` | Train Model      | Start model training (requires 100+ samples) |
+| `N` | New Label        | Set a new label for recording                |
 
 ### Camera Test Controls
 
@@ -101,6 +97,14 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
 | `Q` | Quit         | Exit camera test        |
 | `S` | Save Image   | Save a test image       |
 | `R` | Reset Camera | Reset camera connection |
+
+### Face Detection Controls
+
+| Key | Function         | Description                               |
+| --- | ---------------- | ----------------------------------------- |
+| `F` | Toggle Detection | Enable/disable face detection             |
+| `E` | Switch Mode      | Cycle between mesh, iris, and recognition |
+| `N` | New Face         | Add new face to recognition database      |
 
 ## 📂 Project Structure
 
