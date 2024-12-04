@@ -26,26 +26,66 @@ This method allows you to train the model in real-time using your webcam.
    ```
 
 2. Use the following controls:
-   - Press 'n' to set a new gesture label
+   - Press 'g' to switch to Gesture training mode
+   - Press 'l' to switch to Letter training mode
+   - Press 'w' to switch to Word training mode
+   - Press 'n' to set a new label
    - Press 's' to start/stop recording samples
    - Press 't' to train the model (after collecting enough samples)
    - Press 'q' to quit
 
 3. Training Process:
-   1. Press 'n' and enter a name for your gesture (e.g., "thumbs_up")
-   2. Press 's' to start recording samples
-   3. Move your hand slightly to capture different angles
-   4. Press 's' again to stop recording
-   5. Repeat for each gesture you want to recognize
-   6. Press 't' to train the model once you have at least 100 samples
+   1. Select your training mode (gesture/letter/word) using 'g', 'l', or 'w'
+   2. Press 'n' and enter a label:
+      - For gestures: descriptive name (e.g., "thumbs_up")
+      - For letters: single letter (e.g., "A")
+      - For words: complete word (e.g., "hello")
+   3. Press 's' to start recording samples
+   4. Move your hand slightly to capture different angles
+   5. Press 's' again to stop recording
+   6. Repeat for each item you want to recognize
+   7. Press 't' to train the model once you have at least 100 samples
+
+#### Training Tips:
+- **For Gestures:**
+  - Use distinct hand positions
+  - Include variations in gesture orientation
+  - Keep gestures simple and repeatable
+
+- **For Letters:**
+  - Follow standard sign language alphabet
+  - Keep hand orientation consistent
+  - Focus on clear finger positions
+
+- **For Words:**
+  - Use common sign language word gestures
+  - Practice the motion before recording
+  - Maintain consistent speed
 
 #### Best Practices:
-- Collect at least 100 samples per gesture
+- Collect at least 100 samples per item
 - Include variations in hand position and angle
 - Ensure consistent lighting
 - Keep your hand within camera frame
-- Use distinct gestures for better recognition
+- Use distinct gestures/signs for better recognition
 - Record samples from different distances
+
+### 2. Model Management
+
+The system automatically manages separate models for:
+- Gestures (`models/gesture_model.h5`)
+- Letters (`models/letter_model.h5`)
+- Words (`models/word_model.h5`)
+
+Each mode has its own:
+- Model file (`.h5`)
+- Labels file (`_labels.txt`)
+- Training data (`.npz`)
+
+You can switch between modes at any time during training, and the system will automatically:
+1. Save the current mode's data
+2. Load the appropriate model for the new mode
+3. Continue training with the loaded model
 
 ### 2. 📸 Image Dataset Training
 

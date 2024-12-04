@@ -84,12 +84,15 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
 
 ### Training Mode Controls
 
-| Key | Function         | Description                                  |
-| --- | ---------------- | -------------------------------------------- |
-| `Q` | Quit             | Exit training mode                           |
-| `S` | Sample Recording | Start/stop recording gesture samples         |
-| `T` | Train Model      | Start model training (requires 100+ samples) |
-| `N` | New Label        | Set a new gesture label for recording        |
+| Key | Function           | Description                                  |
+| --- | ----------------- | -------------------------------------------- |
+| `G` | Gesture Mode      | Switch to gesture training mode              |
+| `L` | Letter Mode       | Switch to letter training mode               |
+| `W` | Word Mode         | Switch to word training mode                 |
+| `Q` | Quit              | Exit training mode                           |
+| `S` | Sample Recording  | Start/stop recording samples                 |
+| `T` | Train Model       | Start model training (requires 100+ samples) |
+| `N` | New Label         | Set a new label for recording                |
 
 ### Camera Test Controls
 

@@ -28,7 +28,7 @@ class GestureRecognizer:
         
         # Prediction smoothing
         self.prediction_history = deque(maxlen=5)
-        self.confidence_threshold = 0.8
+        self.confidence_threshold = 0.6  # Reduced from 0.8
         self.min_consecutive_predictions = 3
         
         # Drawing styles
@@ -47,15 +47,26 @@ class GestureRecognizer:
         labels_path = os.path.join('models', f'{self.mode}_labels.txt')
         
         try:
+            # Load labels first to determine if binary or multiclass
+            with open(labels_path, 'r') as f:
+                self.labels = [line.strip() for line in f.readlines()]
+                
+            # Load model
             self.model = tf.keras.models.load_model(model_path)
+            
+            # Verify model output shape matches number of classes
+            is_binary = len(self.labels) == 1
+            expected_output = 1 if is_binary else len(self.labels)
+            
+            if self.model.output_shape[1] != expected_output:
+                print(f"Warning: Model output shape ({self.model.output_shape[1]}) doesn't match number of labels ({len(self.labels)})")
+                
             # Enable GPU acceleration if available
             gpus = tf.config.list_physical_devices('GPU')
             if gpus:
                 for gpu in gpus:
                     tf.config.experimental.set_memory_growth(gpu, True)
-                
-            with open(labels_path, 'r') as f:
-                self.labels = [line.strip() for line in f.readlines()]
+                    
         except Exception as e:
             print(f"Error loading model: {e}")
             
@@ -111,21 +122,47 @@ class GestureRecognizer:
         
     def _predict(self, landmarks):
         """Make prediction using the loaded model with smoothing"""
-        prediction = self.model.predict(landmarks, verbose=0)
-        label_idx = np.argmax(prediction[0])
-        confidence = prediction[0][label_idx]
-        
-        if confidence > self.confidence_threshold:
-            predicted_label = self.labels[label_idx]
-            self.prediction_history.append(predicted_label)
+        try:
+            # Normalize input data
+            landmarks = (landmarks - landmarks.mean()) / landmarks.std()
+            
+            prediction = self.model.predict(landmarks, verbose=0)
+            
+            # For debugging
+            print(f"Raw prediction: {prediction}")
+            print(f"Labels: {self.labels}")
+            
+            # Check if we're doing binary or multiclass classification
+            is_binary = len(self.labels) == 1
+            
+            if is_binary:
+                # For binary classification
+                confidence = prediction[0][0]
+                if confidence > self.confidence_threshold:
+                    predicted_label = self.labels[0]
+                    self.prediction_history.append(predicted_label)
+                    print(f"Binary prediction: {predicted_label} (conf: {confidence:.2f})")
+            else:
+                # For multiclass
+                label_idx = np.argmax(prediction[0])
+                confidence = prediction[0][label_idx]
+                
+                if confidence > self.confidence_threshold:
+                    predicted_label = self.labels[label_idx]
+                    self.prediction_history.append(predicted_label)
+                    print(f"Multiclass prediction: {predicted_label} (conf: {confidence:.2f})")
             
             # Check for consistent predictions
             if len(self.prediction_history) >= self.min_consecutive_predictions:
                 recent_predictions = list(self.prediction_history)[-self.min_consecutive_predictions:]
                 if all(x == recent_predictions[0] for x in recent_predictions):
                     return recent_predictions[0]
-                    
-        return None
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error in prediction: {str(e)}")
+            return None
         
     def _draw_enhanced_hand(self, frame, landmarks):
         """Draw enhanced hand visualization"""
