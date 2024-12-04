@@ -70,6 +70,7 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 ```
 RTTSSL/
 ├── config                # Configuration files for the project
+│   └── keybinds.yaml     # keybinds/config file
 ├── data                  # Raw and processed data storage
 ├── datasets              # Training and testing datasets
 ├── docs/                 # Documentation
