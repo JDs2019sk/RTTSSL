@@ -69,22 +69,22 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 
 ```
 RTTSSL/
-├── config
-├── data
-├── datasets
+├── config                # Configuration files for the project
+├── data                  # Raw and processed data storage
+├── datasets              # Training and testing datasets
 ├── docs/                 # Documentation
 │   └── TRAINING.md       # Training guide
-├── logs
+├── logs                  # Log files from training and execution
 ├── models/               # Trained models
-├── recordings
-├── src/
+├── recordings            # Recorded video files
+├── src/                  # Source code directory
 │   ├── gesture/          # Gesture recognition modules
 │   ├── face/             # Face detection modules
 │   └── utils/            # Utility functions
-├── main.py
+├── main.py               # Main application entry point
 ├── requirements.txt      # Package dependencies
 ├── test_camera.py        # Camera testing utility
-└── train.py
+└── train.py              # Model training script
 ```
 
 #### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/`]
