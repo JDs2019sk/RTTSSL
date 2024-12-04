@@ -103,13 +103,13 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
 
 ```
 RTTSSL/
-├── config                # Configuration files for the project
+├── config/               # Configuration files for the project
 │   └── keybinds.yaml     # keybinds/config file
-├── data                  # Raw and processed data storage
-├── datasets              # Training and testing datasets
+├── data/                 # Raw and processed data storage
+├── datasets/             # Training and testing datasets
 ├── docs/                 # Documentation
 │   └── TRAINING.md       # Training guide
-├── logs                  # Log files from training and execution
+├── logs/                 # Log files from training and execution
 ├── models/               # Trained models
 ├── recordings            # Recorded video files
 ├── src/                  # Source code directory
