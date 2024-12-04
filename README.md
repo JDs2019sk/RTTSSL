@@ -26,12 +26,14 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 ## 🛠️ Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/JDs2019sk/RTTSSL.git
    cd RTTSSL
    ```
 
 2. Create and activate a virtual environment (recommended):
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -45,14 +47,17 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 ## 📚 Usage
 
 1. Test your camera setup:
+
    ```bash
    python test_camera.py
    ```
 
 2. Train the gesture recognition model:
+
    ```bash
    python -m src.gesture.model_trainer
    ```
+
    Follow the on-screen instructions for training. See `docs/TRAINING.md` for detailed guidance.
 
 3. Run the main program:
@@ -64,25 +69,36 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 
 ```
 RTTSSL/
-├── src/
-│   ├── gesture/           # Gesture recognition modules
-│   ├── face/             # Face detection modules
-│   └── utils/            # Utility functions
-├── models/               # Trained models
+├── config
+├── data
+├── datasets
 ├── docs/                 # Documentation
 │   └── TRAINING.md       # Training guide
+├── logs
+├── models/               # Trained models
+├── recordings
+├── src/
+│   ├── gesture/          # Gesture recognition modules
+│   ├── face/             # Face detection modules
+│   └── utils/            # Utility functions
+├── main.py
+├── requirements.txt      # Package dependencies
 ├── test_camera.py        # Camera testing utility
-└── requirements.txt      # Package dependencies
+└── train.py
 ```
+
+#### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/`]
 
 ## 🔄 Training Process
 
 1. **Camera Test**
+
    - Run `test_camera.py` to verify your setup
    - Check FPS and resolution
    - Test image capture functionality
 
 2. **Model Training**
+
    - Interactive training interface
    - Real-time sample collection
    - Automatic model versioning
