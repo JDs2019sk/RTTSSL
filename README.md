@@ -63,6 +63,42 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
    python main.py
    ```
 
+## ⌨️ Default Keybinds
+
+### Main Application Controls
+
+| Key   | Function              | Description                                     |
+| ----- | --------------------- | ----------------------------------------------- |
+| `1`   | Letter Mode           | Switch to sign language letter translation mode |
+| `2`   | Word Mode             | Switch to sign language word translation mode   |
+| `3`   | Gesture Mode          | Switch to gesture recognition mode              |
+| `M`   | Mouse Control         | Toggle hand gesture mouse control               |
+| `F`   | Face Detection        | Enable face detection and recognition           |
+| `E`   | Toggle Detection Mode | Switch between face mesh and iris detection     |
+| `N`   | Name Face             | Add or update name for detected face            |
+| `Tab` | Toggle FPS            | Show/hide FPS counter                           |
+| `P`   | Performance Monitor   | Show/hide performance statistics                |
+| `R`   | Recording             | Start/stop recording                            |
+| `H`   | Help Menu             | Show help and controls overlay                  |
+| `Esc` | Exit                  | Close the application                           |
+
+### Training Mode Controls
+
+| Key | Function         | Description                                  |
+| --- | ---------------- | -------------------------------------------- |
+| `Q` | Quit             | Exit training mode                           |
+| `S` | Sample Recording | Start/stop recording gesture samples         |
+| `T` | Train Model      | Start model training (requires 100+ samples) |
+| `N` | New Label        | Set a new gesture label for recording        |
+
+### Camera Test Controls
+
+| Key | Function     | Description             |
+| --- | ------------ | ----------------------- |
+| `Q` | Quit         | Exit camera test        |
+| `S` | Save Image   | Save a test image       |
+| `R` | Reset Camera | Reset camera connection |
+
 ## 📂 Project Structure
 
 ```
@@ -92,8 +128,4 @@ RTTSSL/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- MediaPipe for hand landmark detection
-- TensorFlow and Keras teams
-- OpenCV community
+## Created by Joel Dias (PAP Project TIIGR 22/25)
