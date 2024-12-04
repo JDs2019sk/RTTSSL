@@ -6,8 +6,6 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 
 - Real-time gesture recognition and translation
 - Sign language letter and word detection
-- Interactive model training interface
-- Hand landmark detection and tracking
 - Advanced facial detection:
   - Face mesh detection
   - Eye iris tracking
@@ -58,7 +56,7 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
    python -m src.gesture.model_trainer
    ```
 
-   Follow the on-screen instructions for training. See `docs/TRAINING.md` for detailed guidance.
+See [Training file](docs/TRAINING.md) for detailed training instructions.
 
 3. Run the main program:
    ```bash
@@ -90,37 +88,9 @@ RTTSSL/
 
 #### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/`]
 
-## 🔄 Training Process
-
-1. **Camera Test**
-
-   - Run `test_camera.py` to verify your setup
-   - Check FPS and resolution
-   - Test image capture functionality
-
-2. **Model Training**
-
-   - Interactive training interface
-   - Real-time sample collection
-   - Automatic model versioning
-   - Progress tracking and validation
-
-3. **Model Management**
-
-   - Automatic saving of trained models
-   - Version control with timestamps
-   - Performance metrics tracking
-   - Easy model updating
-
-See `docs/TRAINING.md` for detailed training instructions.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit pull requests.
-
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
