@@ -32,11 +32,31 @@ class PerformanceMonitor:
         self.has_gpu = False
         if NVIDIA_GPU_AVAILABLE:
             try:
+                print("\nInicializando monitoramento de GPU NVIDIA...")
                 pynvml.nvmlInit()
                 self.gpu_handle = pynvml.nvmlDeviceGetHandleByIndex(0)
                 self.has_gpu = True
+                gpu_name = pynvml.nvmlDeviceGetName(self.gpu_handle)
+                gpu_info = pynvml.nvmlDeviceGetMemoryInfo(self.gpu_handle)
+                print(f"GPU detectada: {gpu_name.decode('utf-8')}")
+                print(f"Memória Total: {gpu_info.total / 1024**2:.0f}MB")
+                print(f"Memória Usada: {gpu_info.used / 1024**2:.0f}MB")
+                print(f"Memória Livre: {gpu_info.free / 1024**2:.0f}MB")
+                print("Monitoramento de GPU inicializado com sucesso!")
             except Exception as e:
-                print(f"GPU monitoring initialization failed: {e}")
+                print(f"\nErro na inicialização do monitoramento de GPU:")
+                print(f"Detalhes do erro: {str(e)}")
+                if "not found" in str(e).lower():
+                    print("Drivers NVIDIA não encontrados. Instale os drivers mais recentes.")
+                elif "no cuda-capable device" in str(e).lower():
+                    print("Nenhuma GPU NVIDIA detectada.")
+                else:
+                    print("Erro desconhecido ao inicializar GPU.")
+                self.has_gpu = False
+        else:
+            print("\nBiblioteca NVIDIA ML Python não encontrada.")
+            print("GPU metrics não estarão disponíveis.")
+            print("Instale a biblioteca com: pip install nvidia-ml-py3")
         
         # Performance flags
         self.enable_threading = True
@@ -98,16 +118,21 @@ class PerformanceMonitor:
                     try:
                         # GPU utilization
                         gpu_util = pynvml.nvmlDeviceGetUtilizationRates(self.gpu_handle)
-                        self.gpu_usage.append(gpu_util.gpu)
+                        self.gpu_usage.append(float(gpu_util.gpu))
                         
                         # GPU memory
                         gpu_mem = pynvml.nvmlDeviceGetMemoryInfo(self.gpu_handle)
-                        gpu_mem_used_percent = (gpu_mem.used / gpu_mem.total) * 100
+                        gpu_mem_used_percent = (float(gpu_mem.used) / float(gpu_mem.total)) * 100.0
                         self.gpu_memory.append(gpu_mem_used_percent)
+                        
+                        # Print debug info a cada 10 segundos
+                        if len(self.gpu_usage) % 10 == 0:
+                            print(f"\nGPU Usage: {self.gpu_usage[-1]:.1f}%")
+                            print(f"GPU Memory: {self.gpu_memory[-1]:.1f}%")
                     except Exception as e:
-                        print(f"GPU monitoring error: {e}")
-                        self.gpu_usage.append(0)
-                        self.gpu_memory.append(0)
+                        print(f"\nErro ao monitorar GPU: {str(e)}")
+                        self.gpu_usage.append(0.0)
+                        self.gpu_memory.append(0.0)
                 
                 time.sleep(1)  # Update every second
             except Exception as e:

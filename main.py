@@ -188,7 +188,7 @@ class RTTSSL:
                 
                 # Show performance metrics
                 if self.show_performance:
-                    self._draw_performance_metrics(frame, metrics)
+                    frame = self._draw_performance_metrics(frame, metrics)
                     
                 # Show help menu
                 if self.show_help:
@@ -437,27 +437,7 @@ class RTTSSL:
                 
     def _draw_performance_metrics(self, frame, metrics):
         """Draw performance metrics on frame"""
-        height, width = frame.shape[:2]
-        
-        # Create semi-transparent overlay
-        overlay = frame.copy()
-        cv2.rectangle(overlay, (width-200, 0), (width, 150),
-                     (0, 0, 0), -1)
-        
-        # Add metrics
-        metrics_text = [
-            f"FPS: {metrics['fps']:.1f}",
-            f"Frame Time: {metrics['processing_time']*1000:.1f}ms",
-            f"Memory: {metrics['memory_usage']:.1f}%",
-            f"CPU: {metrics['cpu_usage']:.1f}%"
-        ]
-        
-        for i, text in enumerate(metrics_text):
-            cv2.putText(overlay, text, (width-190, 30 + i*30),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
-                       
-        # Blend overlay
-        cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
+        return self.ui_manager.add_performance_overlay(frame, metrics)
 
     def _record_frame(self, frame):
         """Record frame to video file"""
