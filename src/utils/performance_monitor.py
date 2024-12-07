@@ -32,31 +32,31 @@ class PerformanceMonitor:
         self.has_gpu = False
         if NVIDIA_GPU_AVAILABLE:
             try:
-                print("\nInicializando monitoramento de GPU NVIDIA...")
+                print("\nInitializing NVIDIA GPU monitoring...")
                 pynvml.nvmlInit()
                 self.gpu_handle = pynvml.nvmlDeviceGetHandleByIndex(0)
                 self.has_gpu = True
                 gpu_name = pynvml.nvmlDeviceGetName(self.gpu_handle)
                 gpu_info = pynvml.nvmlDeviceGetMemoryInfo(self.gpu_handle)
-                print(f"GPU detectada: {gpu_name.decode('utf-8')}")
-                print(f"Memória Total: {gpu_info.total / 1024**2:.0f}MB")
-                print(f"Memória Usada: {gpu_info.used / 1024**2:.0f}MB")
-                print(f"Memória Livre: {gpu_info.free / 1024**2:.0f}MB")
-                print("Monitoramento de GPU inicializado com sucesso!")
+                print(f"Detected GPU: {gpu_name.decode('utf-8')}")
+                print(f"Total Memory: {gpu_info.total / 1024**2:.0f}MB")
+                print(f"Used Memory: {gpu_info.used / 1024**2:.0f}MB")
+                print(f"Free Memory: {gpu_info.free / 1024**2:.0f}MB")
+                print("GPU monitoring initialized successfully!")
             except Exception as e:
-                print(f"\nErro na inicialização do monitoramento de GPU:")
-                print(f"Detalhes do erro: {str(e)}")
+                print(f"\nError initializing GPU monitoring:")
+                print(f"Error details: {str(e)}")
                 if "not found" in str(e).lower():
-                    print("Drivers NVIDIA não encontrados. Instale os drivers mais recentes.")
+                    print("NVIDIA drivers not found. Please install the latest drivers.")
                 elif "no cuda-capable device" in str(e).lower():
-                    print("Nenhuma GPU NVIDIA detectada.")
+                    print("No NVIDIA GPU detected.")
                 else:
-                    print("Erro desconhecido ao inicializar GPU.")
+                    print("Unknown error initializing GPU.")
                 self.has_gpu = False
         else:
-            print("\nBiblioteca NVIDIA ML Python não encontrada.")
-            print("GPU metrics não estarão disponíveis.")
-            print("Instale a biblioteca com: pip install nvidia-ml-py3")
+            print("\nNVIDIA ML Python library not found.")
+            print("GPU metrics will not be available.")
+            print("Install the library with: pip install nvidia-ml-py3")
         
         # Performance flags
         self.enable_threading = True
@@ -125,12 +125,12 @@ class PerformanceMonitor:
                         gpu_mem_used_percent = (float(gpu_mem.used) / float(gpu_mem.total)) * 100.0
                         self.gpu_memory.append(gpu_mem_used_percent)
                         
-                        # Print debug info a cada 10 segundos
+                        # Print debug info every 10 seconds
                         if len(self.gpu_usage) % 10 == 0:
                             print(f"\nGPU Usage: {self.gpu_usage[-1]:.1f}%")
                             print(f"GPU Memory: {self.gpu_memory[-1]:.1f}%")
                     except Exception as e:
-                        print(f"\nErro ao monitorar GPU: {str(e)}")
+                        print(f"\nError monitoring GPU: {str(e)}")
                         self.gpu_usage.append(0.0)
                         self.gpu_memory.append(0.0)
                 

@@ -199,20 +199,20 @@ class UIManager:
                    (width - 190, y), self.font, 0.5, self.colors['text'], 1)
                    
         y += line_height
-        cv2.putText(frame, f"CPU: {metrics['cpu_usage']:.1f}%",
+        cv2.putText(frame, f"CPU Usage: {metrics['cpu_usage']:.1f}%",
                    (width - 190, y), self.font, 0.5, self.colors['text'], 1)
                    
         y += line_height
-        cv2.putText(frame, f"MEM: {metrics['memory_usage']:.1f}%",
+        cv2.putText(frame, f"Memory Usage: {metrics['memory_usage']:.1f}%",
                    (width - 190, y), self.font, 0.5, self.colors['text'], 1)
                    
         if 'gpu_usage' in metrics:
             y += line_height
-            cv2.putText(frame, f"GPU: {metrics['gpu_usage']:.1f}%",
+            cv2.putText(frame, f"GPU Usage: {metrics['gpu_usage']:.1f}%",
                       (width - 190, y), self.font, 0.5, self.colors['text'], 1)
             
             y += line_height
-            cv2.putText(frame, f"VRAM: {metrics['gpu_memory']:.1f}%",
+            cv2.putText(frame, f"GPU Memory: {metrics['gpu_memory']:.1f}%",
                       (width - 190, y), self.font, 0.5, self.colors['text'], 1)
         
         return frame
