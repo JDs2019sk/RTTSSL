@@ -115,6 +115,7 @@ RTTSSL/
 │   ├── gesture/          # Gesture recognition modules
 │   ├── face/             # Face detection modules
 │   └── utils/            # Utility functions
+├── test_images/          # Images taken in camera test
 ├── main.py               # Main application entry point
 ├── requirements.txt      # Package dependencies
 ├── test_camera.py        # Camera testing utility
