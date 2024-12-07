@@ -25,22 +25,18 @@ class FaceDetector:
         cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
         
-        # Initialize face recognizer
-        self.face_recognizer = cv2.face.LBPHFaceRecognizer_create()
-        
         # Face recognition settings
         self.known_faces = []
         self.face_labels = []
         self.label_names = {}
         self.next_label = 0
         self.mode = "mesh"  # "mesh", "iris", or "recognition"
-        self.faces_dir = os.path.join('data', 'faces')
-        self.model_file = os.path.join('data', 'face_recognizer.yml')
-        self.names_file = os.path.join('data', 'face_names.json')
+        self.model_file = os.path.join('models', 'face_recognizer.yml')  # Changed to .yml for OpenCV
+        self.labels_file = os.path.join('models', 'face_labels.json')
+        self.training_data_file = os.path.join('models', 'face_training_data.npz')
         
-        # Create directories if they don't exist
-        os.makedirs(self.faces_dir, exist_ok=True)
-        os.makedirs(os.path.dirname(self.model_file), exist_ok=True)
+        # Create models directory if it doesn't exist
+        os.makedirs('models', exist_ok=True)
         
         # Load existing model and names
         self.load_recognizer()
@@ -48,68 +44,96 @@ class FaceDetector:
     def load_recognizer(self):
         """Load the face recognizer model and names"""
         try:
-            # Load face names
-            if os.path.exists(self.names_file):
-                with open(self.names_file, 'r') as f:
-                    self.label_names = json.load(f)
-                    if self.label_names:
-                        self.next_label = max(map(int, self.label_names.keys())) + 1
+            # Initialize face recognizer
+            self.face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+            
+            # Load labels
+            if os.path.exists(self.labels_file):
+                with open(self.labels_file, 'r') as f:
+                    names_list = json.load(f)
+                    # Convert list to dictionary with indices as keys
+                    self.label_names = {str(i): name for i, name in enumerate(names_list)}
+                print(f"Loaded {len(self.label_names)} face labels: {self.label_names}")
             else:
+                print("No face labels found")
                 self.label_names = {}
-                self.next_label = 0
             
-            # Load saved faces
-            self.known_faces = []
-            self.face_labels = []
-            
-            if os.path.exists(self.faces_dir):
-                for filename in os.listdir(self.faces_dir):
-                    if filename.endswith('.jpg'):
-                        # Load face image
-                        face_path = os.path.join(self.faces_dir, filename)
-                        face_img = cv2.imread(face_path, cv2.IMREAD_GRAYSCALE)
-                        if face_img is not None:
-                            # Get label from filename (format: name_timestamp.jpg)
-                            name = filename.split('_')[0]
-                            # Find label for this name
-                            label = None
-                            for lbl, n in self.label_names.items():
-                                if n == name:
-                                    label = int(lbl)
-                                    break
-                            if label is not None:
-                                self.known_faces.append(face_img)
-                                self.face_labels.append(label)
-            
-            # Train recognizer with loaded faces
-            if self.known_faces:
-                self.face_recognizer.train(self.known_faces, np.array(self.face_labels))
-                print(f"Trained recognizer with {len(self.known_faces)} faces")
+            # Load training data
+            if os.path.exists(self.training_data_file):
+                data = np.load(self.training_data_file)
+                print(f"Available keys in training data: {data.files}")
+                
+                if 'data' in data.files:
+                    face_data = data['data']
+                    face_labels = data['labels']
+                    print(f"Loaded {len(face_data)} face samples using 'data' key")
+                    print(f"Face data shape: {face_data.shape}")
+                    print(f"Labels shape: {face_labels.shape}")
+                    
+                    # Ensure data is in the correct format (grayscale images)
+                    self.known_faces = []
+                    self.face_labels = []
+                    for i in range(len(face_data)):
+                        face = face_data[i]
+                        if len(face.shape) == 3:  # If RGB, convert to grayscale
+                            face = cv2.cvtColor(face, cv2.COLOR_RGB2GRAY)
+                        # Ensure face is 100x100
+                        face = cv2.resize(face, (100, 100))
+                        self.known_faces.append(face)
+                        self.face_labels.append(face_labels[i])
+                    
+                    # Convert to numpy arrays
+                    self.known_faces = np.array(self.known_faces)
+                    self.face_labels = np.array(self.face_labels, dtype=np.int32)
+                    
+                    print(f"Processed {len(self.known_faces)} faces for training")
+                    print(f"Final data shape: {self.known_faces.shape}")
+                    print(f"Final labels shape: {self.face_labels.shape}")
+                    
+                    # Train model with processed data
+                    self.face_recognizer.train(self.known_faces, self.face_labels)
+                    print("Successfully trained model with loaded faces")
+                else:
+                    print("No face data found in training file")
+                    self.known_faces = []
+                    self.face_labels = []
+                    self.face_recognizer.train([np.zeros((100, 100), dtype=np.uint8)], np.array([0]))
             else:
-                # Train with empty data to initialize the model
+                print("No training data found")
+                self.known_faces = []
+                self.face_labels = []
                 self.face_recognizer.train([np.zeros((100, 100), dtype=np.uint8)], np.array([0]))
-                print("No faces found, initialized empty model")
                 
         except Exception as e:
             print(f"Error loading recognizer: {e}")
+            print("Initializing with empty model")
             self.label_names = {}
-            self.next_label = 0
-            # Train with empty data to initialize the model
+            self.known_faces = []
+            self.face_labels = []
+            self.face_recognizer = cv2.face.LBPHFaceRecognizer_create()
             self.face_recognizer.train([np.zeros((100, 100), dtype=np.uint8)], np.array([0]))
             
     def save_recognizer(self):
         """Save the face recognizer model and names"""
         try:
-            # Save face names
-            with open(self.names_file, 'w') as f:
+            # Save labels
+            with open(self.labels_file, 'w') as f:
                 json.dump(self.label_names, f, indent=4)
+            print(f"Saved {len(self.label_names)} face labels")
             
-            # Save recognizer model
+            # Save training data
+            if self.known_faces:
+                np.savez(self.training_data_file, 
+                        data=np.array(self.known_faces),
+                        labels=np.array(self.face_labels))
+                print(f"Saved {len(self.known_faces)} face samples")
+            
+            # Save model
             self.face_recognizer.write(self.model_file)
-            print("Saved face recognizer model and names")
+            print("Saved face recognition model")
             
         except Exception as e:
-            print(f"Error saving face recognizer: {e}")
+            print(f"Error saving recognizer: {e}")
             
     def add_face(self, frame, name):
         """Add a new face to the recognizer"""
@@ -146,7 +170,7 @@ class FaceDetector:
             # Save face image
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{name}_{timestamp}.jpg"
-            filepath = os.path.join(self.faces_dir, filename)
+            filepath = os.path.join('faces', filename)
             cv2.imwrite(filepath, face_roi)
             
             # Retrain recognizer
@@ -238,15 +262,22 @@ class FaceDetector:
             
             try:
                 # Predict face
-                label, confidence = self.face_recognizer.predict(face_roi)
-                confidence = 100 - confidence  # Convert to percentage (higher is better)
+                label, distance = self.face_recognizer.predict(face_roi)
+                # Convert distance to confidence (0-100%)
+                # LBPH típico tem distâncias entre 0-100, onde menor é melhor
+                confidence = max(0, min(100, 100 * (1 - distance/100)))
                 
-                # Get name
-                name = self.label_names.get(str(label), "Unknown")
-                if confidence < 40:  # Confidence threshold
+                # Get name from label
+                label_str = str(label)
+                name = self.label_names.get(label_str, "Unknown")
+                
+                # Ajustando o limiar de confiança
+                if confidence < 30:  # Usando 30% como limiar
                     name = "Unknown"
+                    print(f"Face detected but confidence too low: {confidence:.1f}% (distance: {distance:.1f})")
                 else:
                     name = f"{name} ({confidence:.1f}%)"
+                    print(f"Face recognized: {name} (distance: {distance:.1f})")
                 
                 # Draw face rectangle
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
@@ -264,7 +295,9 @@ class FaceDetector:
                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
                            
             except Exception as e:
-                print(f"Error recognizing face: {e}")
+                print(f"Error in face recognition: {e}")
+                print(f"Label: {label if 'label' in locals() else 'unknown'}")
+                print(f"Label names: {self.label_names}")
         
         return frame
         
@@ -287,5 +320,12 @@ class FaceDetector:
             self.mode = "iris"
         elif self.mode == "iris":
             self.mode = "recognition"
+            # Load face recognizer model if it exists
+            if os.path.exists(self.model_file):
+                try:
+                    self.face_recognizer.read(self.model_file)
+                    print("Loaded face recognition model")
+                except Exception as e:
+                    print(f"Error loading face model: {e}")
         else:
             self.mode = "mesh"

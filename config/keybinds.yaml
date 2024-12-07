@@ -1,16 +1,31 @@
 keybinds:
+  # Mode Selection
   letter_mode: "1"
   word_mode: "2"
   gesture_mode: "3"
   mouse_control: "m"
   face_detection: "f"
   toggle_detection_mode: "e"
-  name_face: "n"
+
+  # UI Controls
   toggle_fps: "tab"
   toggle_performance: "p"
   toggle_recording: "r"
   help_menu: "h"
   exit: "esc"
+
+  # Training Controls
+  quit_training: "q"
+  start_stop_recording: "s"
+  new_label: "n"
+  retrain_label: "r"
+  info_display: "i"
+  start_training: "t"
+
+  # Camera Test Controls
+  save_image: "s"
+  reset_camera: "r"
+  quit_test: "q"
 
 modes:
   letter:
@@ -34,6 +49,7 @@ modes:
     submodes:
       - mesh
       - iris
+      - recognition
     description: "Face detection and recognition"
 
 performance:
@@ -42,3 +58,17 @@ performance:
   enable_gpu: true
   optimize_resolution: true
   notification_duration: 3.0 # seconds
+
+training:
+  max_samples_per_label: 1000
+  window_size:
+    width: 1280
+    height: 720
+  confidence_threshold: 0.5
+  model_complexity: 1
+
+camera_test:
+  window_size:
+    width: 1280
+    height: 720
+  save_directory: "test_images"

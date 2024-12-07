@@ -9,6 +9,7 @@ import mediapipe as mp
 import numpy as np
 import tensorflow as tf
 import os
+import json
 from collections import deque
 
 class GestureRecognizer:
@@ -18,49 +19,46 @@ class GestureRecognizer:
         self.hands = self.mp_hands.Hands(
             static_image_mode=False,
             max_num_hands=2,
-            min_detection_confidence=0.7,
-            min_tracking_confidence=0.7,
-            model_complexity=1  # Use more accurate model
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
+            model_complexity=1
         )
         self.model = None
         self.labels = []
-        self.mode = "gesture"  # "gesture", "letter", or "word"
+        self.mode = "gesture"
         
-        # Prediction smoothing
-        self.prediction_history = deque(maxlen=5)
-        self.confidence_threshold = 0.6  # Reduced from 0.8
-        self.min_consecutive_predictions = 3
+        # Prediction smoothing with improved parameters
+        self.prediction_history = deque(maxlen=10)  # Increased history
+        self.confidence_threshold = 0.3  # Lowered threshold
+        self.min_consecutive_predictions = 3  # Reduced required consecutive predictions
         
-        # Drawing styles
-        self.drawing_styles = {
-            'landmark_style': self.mp_drawing.DrawingSpec(
-                color=(0, 255, 0), thickness=2, circle_radius=2),
-            'connection_style': self.mp_drawing.DrawingSpec(
-                color=(255, 255, 255), thickness=1)
-        }
+        # Add mean and std for normalization
+        self.mean = None
+        self.std = None
         
         self._load_model()
         
     def _load_model(self):
         """Load the trained model and labels based on current mode"""
         model_path = os.path.join('models', f'{self.mode}_model.h5')
-        labels_path = os.path.join('models', f'{self.mode}_labels.txt')
+        labels_path = os.path.join('models', f'{self.mode}_labels.json')
+        data_path = os.path.join('models', f'{self.mode}_training_data.npz')
         
         try:
-            # Load labels first to determine if binary or multiclass
+            # Load labels first
             with open(labels_path, 'r') as f:
-                self.labels = [line.strip() for line in f.readlines()]
+                self.labels = json.load(f)
                 
             # Load model
             self.model = tf.keras.models.load_model(model_path)
             
-            # Verify model output shape matches number of classes
-            is_binary = len(self.labels) == 1
-            expected_output = 1 if is_binary else len(self.labels)
+            # Load normalization parameters from training data
+            if os.path.exists(data_path):
+                data = np.load(data_path)
+                X = data['data']
+                self.mean = X.mean(axis=0)
+                self.std = X.std(axis=0)
             
-            if self.model.output_shape[1] != expected_output:
-                print(f"Warning: Model output shape ({self.model.output_shape[1]}) doesn't match number of labels ({len(self.labels)})")
-                
             # Enable GPU acceleration if available
             gpus = tf.config.list_physical_devices('GPU')
             if gpus:
@@ -80,7 +78,7 @@ class GestureRecognizer:
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 # Extract hand landmarks with improved normalization
-                landmarks = self._extract_landmarks(hand_landmarks, frame.shape)
+                landmarks = self._extract_landmarks(hand_landmarks)
                 
                 # Get prediction if model is loaded
                 if self.model is not None:
@@ -93,64 +91,68 @@ class GestureRecognizer:
                 
         return frame, translation
         
-    def _extract_landmarks(self, hand_landmarks, frame_shape):
+    def _extract_landmarks(self, hand_landmarks):
         """Extract and normalize hand landmarks with improved normalization"""
-        # Extract raw landmarks
-        landmarks = []
-        height, width = frame_shape[:2]
-        
-        # Get hand bounding box
-        x_coords = [landmark.x * width for landmark in hand_landmarks.landmark]
-        y_coords = [landmark.y * height for landmark in hand_landmarks.landmark]
-        bbox_min_x, bbox_max_x = min(x_coords), max(x_coords)
-        bbox_min_y, bbox_max_y = min(y_coords), max(y_coords)
-        bbox_width = bbox_max_x - bbox_min_x
-        bbox_height = bbox_max_y - bbox_min_y
-        
-        # Normalize landmarks relative to bounding box
-        for landmark in hand_landmarks.landmark:
-            # Normalize x, y coordinates
-            norm_x = (landmark.x * width - bbox_min_x) / bbox_width
-            norm_y = (landmark.y * height - bbox_min_y) / bbox_height
-            
-            # Add depth information
-            norm_z = landmark.z
-            
-            landmarks.extend([norm_x, norm_y, norm_z])
-            
-        return np.array(landmarks).reshape(1, -1)
-        
-    def _predict(self, landmarks):
-        """Make prediction using the loaded model with smoothing"""
         try:
-            # Normalize input data
-            landmarks = (landmarks - landmarks.mean()) / landmarks.std()
+            # Get all coordinates first
+            x_coords = [lm.x for lm in hand_landmarks.landmark]
+            y_coords = [lm.y for lm in hand_landmarks.landmark]
+            z_coords = [lm.z for lm in hand_landmarks.landmark]
             
+            # Calculate bounding box
+            min_x, max_x = min(x_coords), max(x_coords)
+            min_y, max_y = min(y_coords), max(y_coords)
+            min_z, max_z = min(z_coords), max(z_coords)
+            
+            # Calculate ranges with epsilon to prevent division by zero
+            eps = 1e-6
+            x_range = max(max_x - min_x, eps)
+            y_range = max(max_y - min_y, eps)
+            z_range = max(max_z - min_z, eps)
+            
+            # Normalize coordinates relative to bounding box
+            landmarks = []
+            for landmark in hand_landmarks.landmark:
+                # Normalize each coordinate to range [0, 1]
+                norm_x = (landmark.x - min_x) / x_range
+                norm_y = (landmark.y - min_y) / y_range
+                norm_z = (landmark.z - min_z) / z_range
+                
+                landmarks.extend([norm_x, norm_y, norm_z])
+            
+            return np.array(landmarks)
+            
+        except Exception as e:
+            print(f"Error extracting landmarks: {str(e)}")
+            raise
+            
+    def _predict(self, landmarks):
+        """Make prediction using the loaded model with improved smoothing"""
+        try:
+            # Reshape and normalize input data
+            landmarks = landmarks.reshape(1, -1)
+            
+            # Apply same normalization as training
+            if self.mean is not None and self.std is not None:
+                landmarks = (landmarks - self.mean) / self.std
+            
+            # Get prediction probabilities
             prediction = self.model.predict(landmarks, verbose=0)
             
-            # For debugging
-            print(f"Raw prediction: {prediction}")
-            print(f"Labels: {self.labels}")
+            # Get top 2 predictions and their confidences
+            top2_idx = np.argsort(prediction[0])[-2:][::-1]
+            confidences = prediction[0][top2_idx]
             
-            # Check if we're doing binary or multiclass classification
-            is_binary = len(self.labels) == 1
-            
-            if is_binary:
-                # For binary classification
-                confidence = prediction[0][0]
-                if confidence > self.confidence_threshold:
-                    predicted_label = self.labels[0]
-                    self.prediction_history.append(predicted_label)
-                    print(f"Binary prediction: {predicted_label} (conf: {confidence:.2f})")
-            else:
-                # For multiclass
-                label_idx = np.argmax(prediction[0])
-                confidence = prediction[0][label_idx]
+            # Check if the best prediction is significantly better than the second best
+            if confidences[0] > self.confidence_threshold and (len(confidences) == 1 or confidences[0] - confidences[1] > 0.2):
+                predicted_label = self.labels[top2_idx[0]]
+                self.prediction_history.append(predicted_label)
                 
-                if confidence > self.confidence_threshold:
-                    predicted_label = self.labels[label_idx]
-                    self.prediction_history.append(predicted_label)
-                    print(f"Multiclass prediction: {predicted_label} (conf: {confidence:.2f})")
+                # For debugging
+                if confidences[0] > 0.7:
+                    print(f"High confidence prediction: {predicted_label} ({confidences[0]:.2f})")
+                    if len(confidences) > 1:
+                        print(f"Second best: {self.labels[top2_idx[1]]} ({confidences[1]:.2f})")
             
             # Check for consistent predictions
             if len(self.prediction_history) >= self.min_consecutive_predictions:
@@ -171,8 +173,10 @@ class GestureRecognizer:
             frame,
             landmarks,
             self.mp_hands.HAND_CONNECTIONS,
-            landmark_drawing_spec=self.drawing_styles['landmark_style'],
-            connection_drawing_spec=self.drawing_styles['connection_style']
+            landmark_drawing_spec=self.mp_drawing.DrawingSpec(
+                color=(0, 255, 0), thickness=2, circle_radius=2),
+            connection_drawing_spec=self.mp_drawing.DrawingSpec(
+                color=(255, 255, 255), thickness=1)
         )
         
         # Add depth visualization

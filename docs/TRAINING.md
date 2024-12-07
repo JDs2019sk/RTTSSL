@@ -1,151 +1,220 @@
-# 🎓 Training Guide for RTTSSL
+# RTTSSL Training Guide
 
-## Prerequisites
+This guide explains how to train RTTSSL recognition models using different modes and training methods.
 
-1. **Hardware Requirements:**
-   - Webcam (for real-time training)
-   - Good lighting conditions
-   - Consistent background (preferably plain)
-   - GPU recommended for faster training
+## Table of Contents
+- [Training Modes](#training-modes)
+- [Training Methods](#training-methods)
+  - [Real-time Training](#1-real-time-training)
+  - [Dataset Training](#2-dataset-training)
+- [Directory Structure](#directory-structure)
+- [Image Requirements](#image-requirements)
+- [Training Tips](#training-tips)
+- [Troubleshooting](#troubleshooting)
+- [Command-Line Arguments](#command-line-arguments)
 
-2. **Software Setup:**
-   - Python 3.8-3.11 (TensorFlow compatibility)
-   - All dependencies installed (`pip install -r requirements.txt`)
-   - Enough disk space for model storage
+## Training Modes
+
+RTTSSL supports four training modes:
+
+1. **Gesture Mode**: For training gestures (e.g., 👍, ✌️, etc.)
+   - Ideal for simple gesture recognition
+   - Recommended for commands and controls
+
+2. **Letter Mode**: For training sign language alphabet
+   - Optimized for individual letter recognition
+   - Foundation for sign language communication
+
+3. **Word Mode**: For training sign language words
+   - Enables complete word recognition
+   - Supports movement sequences
+
+4. **Face Mode**: For training facial recognition
+   - Detects and recognizes facial expressions
+   - Complements gesture recognition
 
 ## Training Methods
 
-### 1. 🎥 Real-Time Training (Recommended)
+### 1. Real-time Training
 
-This method allows you to train the model in real-time using your webcam.
+Uses webcam to capture samples in real-time.
 
-#### Steps:
-1. Start the training module:
-   ```bash
-   python -m src.gesture.model_trainer
-   ```
+#### How to Use:
+```bash
+# Method 1: With arguments (recommended)
+python -m src.gesture.model_trainer --mode gesture --type realtime
 
-2. Use the following controls:
-   - Press 'g' to switch to Gesture training mode
-   - Press 'l' to switch to Letter training mode
-   - Press 'w' to switch to Word training mode
-   - Press 'n' to set a new label
-   - Press 's' to start/stop recording samples
-   - Press 't' to train the model (after collecting enough samples)
-   - Press 'q' to quit
+# Method 2: Interactive
+python -m src.gesture.model_trainer
+# Then select mode and choose "Real-time Training"
+```
 
-3. Training Process:
-   1. Select your training mode (gesture/letter/word) using 'g', 'l', or 'w'
-   2. Press 'n' and enter a label:
-      - For gestures: descriptive name (e.g., "thumbs_up")
-      - For letters: single letter (e.g., "A")
-      - For words: complete word (e.g., "hello")
-   3. Press 's' to start recording samples
-   4. Move your hand slightly to capture different angles
-   5. Press 's' again to stop recording
-   6. Repeat for each item you want to recognize
-   7. Press 't' to train the model once you have at least 100 samples
+#### Training Commands:
+- `s`: Start/stop recording samples
+- `n`: Create/set new label
+- `r`: Retrain specific label
+- `i`: Show training information
+- `t`: Train the model
+- `q`: Quit
 
-#### Training Tips:
-- **For Gestures:**
-  - Use distinct hand positions
-  - Include variations in gesture orientation
-  - Keep gestures simple and repeatable
+### 2. Dataset Training
 
-- **For Letters:**
-  - Follow standard sign language alphabet
-  - Keep hand orientation consistent
-  - Focus on clear finger positions
+Uses pre-captured images organized in directories.
 
-- **For Words:**
-  - Use common sign language word gestures
-  - Practice the motion before recording
-  - Maintain consistent speed
+#### How to Use:
+```bash
+# Method 1: With arguments (recommended)
+python -m src.gesture.model_trainer --mode letter --type dataset
 
-#### Best Practices:
-- Collect at least 100 samples per item
-- Include variations in hand position and angle
-- Ensure consistent lighting
-- Keep your hand within camera frame
-- Use distinct gestures/signs for better recognition
-- Record samples from different distances
+# Method 2: Interactive
+python -m src.gesture.model_trainer
+# Then select mode and choose "Image Dataset Training"
+```
 
-### 2. Model Management
+## Directory Structure
 
-The system automatically manages separate models for:
-- Gestures (`models/gesture_model.h5`)
-- Letters (`models/letter_model.h5`)
-- Words (`models/word_model.h5`)
-
-Each mode has its own:
-- Model file (`.h5`)
-- Labels file (`_labels.txt`)
-- Training data (`.npz`)
-
-You can switch between modes at any time during training, and the system will automatically:
-1. Save the current mode's data
-2. Load the appropriate model for the new mode
-3. Continue training with the loaded model
-
-### 2. 📸 Image Dataset Training
-
-For training with a pre-collected image dataset.
-
-#### Dataset Structure
 ```
 datasets/
-├── gestures/
-│   ├── thumbs_up/
-│   │   ├── image1.jpg
-│   │   ├── image2.jpg
+├── gesture/                # For gestures
+│   ├── thumbs_up/         # One directory per gesture
+│   │   ├── img1.jpg
+│   │   ├── img2.jpg
 │   ├── peace/
-│   │   ├── image1.jpg
-│   │   └── ...
+│   │   ├── img1.jpg
+│
+├── letter/                # For letters
+│   ├── A/                # One directory per letter
+│   │   ├── img1.jpg
+│   ├── B/
+│   │   ├── img1.jpg
+│
+└── word/                  # For words
+    ├── hello/            # One directory per word
+    │   ├── img1.jpg
+    ├── thanks/
+        ├── img1.jpg
 ```
 
-#### Steps:
-1. Organize your images following the structure above
-2. Run training:
-   ```bash
-   python -m src.gesture.model_trainer --mode image --dataset datasets/gestures
-   ```
+## Image Requirements
 
-## 🔍 Troubleshooting
+1. **Supported Formats**:
+   - JPG/JPEG
+   - PNG
 
-### Common Issues:
+2. **Quality**:
+   - Minimum resolution: 640x480
+   - Good lighting
+   - Sharp focus
+   - Adequate contrast
 
-1. **Camera Not Found**
-   - Run `python test_camera.py` to verify camera setup
-   - Check if other applications are using the camera
-   - Ensure camera permissions are enabled
+3. **Content**:
+   - Clearly visible gesture/letter
+   - Well-positioned hand/face
+   - Preferably neutral background
+   - Avoid distracting objects
 
-2. **Poor Recognition**
-   - Collect more training samples
-   - Ensure varied hand positions in training
-   - Check lighting conditions
-   - Verify camera resolution settings
+## Training Tips
 
-3. **Training Errors**
-   - Ensure Python version compatibility (3.8-3.11)
-   - Verify all dependencies are installed
-   - Check for adequate disk space
-   - Monitor system resources during training
+1. **Sample Quantity**:
+   - Minimum: 50 images per label
+   - Ideal: 100-200 images per label
+   - More samples = better accuracy
 
-4. **Model Not Saving**
-   - Check write permissions in the models directory
-   - Ensure adequate disk space
-   - Verify path structure exists
+2. **Important Variations**:
+   - Different angles
+   - Various camera distances
+   - Diverse lighting conditions
+   - Different people/hands
+   - Various backgrounds
 
-## 📊 Model Performance
+3. **Best Practices**:
+   - Maintain gesture/letter consistency
+   - Vary position and rotation moderately
+   - Include challenging cases
+   - Backup your datasets
 
-- The model automatically splits data into training and validation sets
-- Early stopping prevents overfitting
-- Training history is saved for analysis
-- Test accuracy is displayed after training
+4. **Optimization**:
+   - Start with few labels
+   - Test frequently
+   - Add more data for problematic labels
+   - Use cross-validation
 
-## 🔄 Updating Models
+## Troubleshooting
 
-- Models are saved with timestamps
-- Previous models are preserved
-- New training sessions create new model files
-- Best performing models are automatically selected
+1. **Low Accuracy**:
+   - Add more training images
+   - Check image quality
+   - Increase training epochs
+   - Reduce number of classes
+
+2. **Detection Errors**:
+   - Improve lighting
+   - Adjust camera position
+   - Check background
+   - Use contrasting clothing
+
+3. **Memory Issues**:
+   - Reduce image resolution
+   - Decrease batch size
+   - Process fewer images at once
+   - Free unused RAM
+
+4. **Common Errors**:
+   - "No features extracted": Check gesture visibility
+   - "Directory not found": Verify folder structure
+   - "Model not saved": Check write permissions
+
+## Command-Line Arguments
+
+The trainer supports the following command-line arguments:
+
+```bash
+python -m src.gesture.model_trainer [arguments]
+```
+
+### Required Arguments
+
+None - if no arguments are provided, the trainer will run in interactive mode.
+
+### Optional Arguments
+
+| Argument | Values | Description |
+|----------|---------|-------------|
+| `--mode` | `gesture`, `letter`, `word`, `face` | Training mode to use |
+| `--type` | `realtime`, `dataset` | Training method to use |
+
+### Examples
+
+```bash
+# Train letters using image dataset
+python -m src.gesture.model_trainer --mode letter --type dataset
+
+# Train gestures in real-time
+python -m src.gesture.model_trainer --mode gesture --type realtime
+
+# Train words using image dataset
+python -m src.gesture.model_trainer --mode word --type dataset
+
+# Train faces in real-time
+python -m src.gesture.model_trainer --mode face --type realtime
+
+# Interactive mode (will show menus)
+python -m src.gesture.model_trainer
+```
+
+## Generated Files
+
+After training, the following files are created in `models/`:
+
+- `[mode]_model.h5`: Trained model
+- `[mode]_labels.json`: Class labels
+- `[mode]_training_data.npz`: Training data
+
+## Additional Notes
+
+- Model is automatically saved after training
+- Previous backups are preserved
+- You can mix training methods
+- System automatically selects best model
+- Use validation to assess quality
+- Monitor overfitting/underfitting

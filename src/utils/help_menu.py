@@ -14,32 +14,85 @@ class HelpMenu:
         self.keybinds = self._load_config()
         
     def _load_config(self):
-        """Load keybinds configuration from yaml file"""
         try:
-            with open(self.config_path, 'r') as file:
-                return yaml.safe_load(file)
+            with open(self.config_path, 'r') as f:
+                config = yaml.safe_load(f)
+                # Filtrar apenas as keybinds principais
+                main_keybinds = {
+                    'Mode Selection': {
+                        config['keybinds']['letter_mode']: 'Letter Mode',
+                        config['keybinds']['word_mode']: 'Word Mode',
+                        config['keybinds']['gesture_mode']: 'Gesture Mode',
+                        config['keybinds']['mouse_control']: 'Mouse Control',
+                        config['keybinds']['face_detection']: 'Face Detection',
+                        config['keybinds']['toggle_detection_mode']: 'Toggle Face Mode'
+                    },
+                    'Controls': {
+                        config['keybinds']['toggle_fps']: 'Toggle FPS',
+                        config['keybinds']['toggle_performance']: 'Toggle Performance',
+                        config['keybinds']['toggle_recording']: 'Toggle Recording',
+                        config['keybinds']['help_menu']: 'Help Menu',
+                        config['keybinds']['exit']: 'Exit'
+                    }
+                }
+                return main_keybinds
         except Exception as e:
-            print(f"Error loading keybinds config: {e}")
-            return {}
-            
+            print(f"Error loading config: {e}")
+            return {
+                'Mode Selection': {
+                    '1': 'Letter Mode',
+                    '2': 'Word Mode',
+                    '3': 'Gesture Mode',
+                    'm': 'Mouse Control',
+                    'f': 'Face Detection',
+                    'e': 'Toggle Face Mode'
+                },
+                'Controls': {
+                    'tab': 'Toggle FPS',
+                    'p': 'Toggle Performance',
+                    'r': 'Toggle Recording',
+                    'h': 'Help Menu',
+                    'esc': 'Exit'
+                }
+            }
+
     def draw(self, frame):
         """Draw help menu overlay on the frame"""
         # Create semi-transparent overlay
         overlay = frame.copy()
-        cv2.rectangle(overlay, (50, 50), (600, 500), (0, 0, 0), -1)
+        cv2.rectangle(overlay, (50, 50), (600, 460), (0, 0, 0), -1)
         
         # Add title
         cv2.putText(overlay, "Help Menu", (70, 90),
                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         
-        # Add keybinds
+        # Add keybinds by category
         y_pos = 130
-        for action, key in self.keybinds.get('keybinds', {}).items():
-            text = f"{key.upper()}: {action.replace('_', ' ').title()}"
-            cv2.putText(overlay, text, (70, y_pos),
+        
+        # Mode Selection
+        cv2.putText(overlay, "Mode Selection:", (70, y_pos),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        y_pos += 30
+        
+        for key, action in self.keybinds['Mode Selection'].items():
+            text = f"{key.upper()}: {action}"
+            cv2.putText(overlay, text, (90, y_pos),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
-            y_pos += 30
+            y_pos += 25
             
+        y_pos += 10
+        
+        # Controls
+        cv2.putText(overlay, "Controls:", (70, y_pos),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        y_pos += 30
+        
+        for key, action in self.keybinds['Controls'].items():
+            text = f"{key.upper()}: {action}"
+            cv2.putText(overlay, text, (90, y_pos),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+            y_pos += 25
+        
         # Blend overlay with original frame
         alpha = 0.7
         return cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)

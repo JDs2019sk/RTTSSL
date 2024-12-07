@@ -71,7 +71,6 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
 | `M`   | Mouse Control       | Toggle hand gesture mouse control               |
 | `F`   | Face Detection      | Enable face detection and recognition           |
 | `E`   | Toggle Face Mode    | Cycle between mesh, iris, and recognition modes |
-| `N`   | New Face            | Add new face to recognition database            |
 | `Tab` | Toggle FPS          | Show/hide FPS counter                           |
 | `P`   | Performance Monitor | Show/hide performance statistics                |
 | `R`   | Recording           | Start/stop recording                            |
@@ -80,15 +79,16 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
 
 ### Training Mode Controls
 
-| Key | Function         | Description                                  |
-| --- | ---------------- | -------------------------------------------- |
-| `G` | Gesture Mode     | Switch to gesture training mode              |
-| `L` | Letter Mode      | Switch to letter training mode               |
-| `W` | Word Mode        | Switch to word training mode                 |
-| `Q` | Quit             | Exit training mode                           |
-| `S` | Sample Recording | Start/stop recording samples                 |
-| `T` | Train Model      | Start model training (requires 100+ samples) |
-| `N` | New Label        | Set a new label for recording                |
+| Key | Function           | Description                                    |
+| --- | ------------------ | ---------------------------------------------- |
+| `Q` | Quit               | Exit training mode                             |
+| `N` | New Label          | Set a new label for recording                  |
+| `S` | Sample Recording   | Start/stop recording samples                   |
+| `T` | Train Model        | Start model training (min 100, max 1000/label) |
+| `R` | Retrain Gesture    | Retrain a specific gesture from scratch        |
+| `I` | Show Training Info | Show training information                      |
+
+For detailed training instructions, see [Training Guide](docs/TRAINING.md).
 
 ### Camera Test Controls
 
@@ -97,14 +97,6 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
 | `Q` | Quit         | Exit camera test        |
 | `S` | Save Image   | Save a test image       |
 | `R` | Reset Camera | Reset camera connection |
-
-### Face Detection Controls
-
-| Key | Function         | Description                               |
-| --- | ---------------- | ----------------------------------------- |
-| `F` | Toggle Detection | Enable/disable face detection             |
-| `E` | Switch Mode      | Cycle between mesh, iris, and recognition |
-| `N` | New Face         | Add new face to recognition database      |
 
 ## 📂 Project Structure
 
