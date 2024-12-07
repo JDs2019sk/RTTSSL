@@ -3,6 +3,7 @@
 This guide explains how to train RTTSSL recognition models using different modes and training methods.
 
 ## Table of Contents
+
 - [Training Modes](#training-modes)
 - [Training Methods](#training-methods)
   - [Real-time Training](#1-real-time-training)
@@ -18,14 +19,17 @@ This guide explains how to train RTTSSL recognition models using different modes
 RTTSSL supports four training modes:
 
 1. **Gesture Mode**: For training gestures (e.g., 👍, ✌️, etc.)
+
    - Ideal for simple gesture recognition
    - Recommended for commands and controls
 
 2. **Letter Mode**: For training sign language alphabet
+
    - Optimized for individual letter recognition
    - Foundation for sign language communication
 
 3. **Word Mode**: For training sign language words
+
    - Enables complete word recognition
    - Supports movement sequences
 
@@ -40,6 +44,7 @@ RTTSSL supports four training modes:
 Uses webcam to capture samples in real-time.
 
 #### How to Use:
+
 ```bash
 # Method 1: With arguments (recommended)
 python -m src.gesture.model_trainer --mode gesture --type realtime
@@ -50,6 +55,7 @@ python -m src.gesture.model_trainer
 ```
 
 #### Training Commands:
+
 - `s`: Start/stop recording samples
 - `n`: Create/set new label
 - `r`: Retrain specific label
@@ -62,6 +68,7 @@ python -m src.gesture.model_trainer
 Uses pre-captured images organized in directories.
 
 #### How to Use:
+
 ```bash
 # Method 1: With arguments (recommended)
 python -m src.gesture.model_trainer --mode letter --type dataset
@@ -98,10 +105,12 @@ datasets/
 ## Image Requirements
 
 1. **Supported Formats**:
+
    - JPG/JPEG
    - PNG
 
 2. **Quality**:
+
    - Minimum resolution: 640x480
    - Good lighting
    - Sharp focus
@@ -116,11 +125,13 @@ datasets/
 ## Training Tips
 
 1. **Sample Quantity**:
+
    - Minimum: 50 images per label
    - Ideal: 100-200 images per label
    - More samples = better accuracy
 
 2. **Important Variations**:
+
    - Different angles
    - Various camera distances
    - Diverse lighting conditions
@@ -128,6 +139,7 @@ datasets/
    - Various backgrounds
 
 3. **Best Practices**:
+
    - Maintain gesture/letter consistency
    - Vary position and rotation moderately
    - Include challenging cases
@@ -142,18 +154,21 @@ datasets/
 ## Troubleshooting
 
 1. **Low Accuracy**:
+
    - Add more training images
    - Check image quality
    - Increase training epochs
    - Reduce number of classes
 
 2. **Detection Errors**:
+
    - Improve lighting
    - Adjust camera position
    - Check background
    - Use contrasting clothing
 
 3. **Memory Issues**:
+
    - Reduce image resolution
    - Decrease batch size
    - Process fewer images at once
@@ -178,10 +193,10 @@ None - if no arguments are provided, the trainer will run in interactive mode.
 
 ### Optional Arguments
 
-| Argument | Values | Description |
-|----------|---------|-------------|
-| `--mode` | `gesture`, `letter`, `word`, `face` | Training mode to use |
-| `--type` | `realtime`, `dataset` | Training method to use |
+| Argument | Values                              | Description            |
+| -------- | ----------------------------------- | ---------------------- |
+| `--mode` | `gesture`, `letter`, `word`, `face` | Training mode to use   |
+| `--type` | `realtime`, `dataset`               | Training method to use |
 
 ### Examples
 

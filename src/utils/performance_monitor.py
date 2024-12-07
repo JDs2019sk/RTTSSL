@@ -9,6 +9,11 @@ import numpy as np
 from collections import deque
 import threading
 import cv2
+try:
+    import pynvml
+    NVIDIA_GPU_AVAILABLE = True
+except ImportError:
+    NVIDIA_GPU_AVAILABLE = False
 
 class PerformanceMonitor:
     def __init__(self, history_size=100):
@@ -16,10 +21,22 @@ class PerformanceMonitor:
         self.processing_times = deque(maxlen=history_size)
         self.memory_usage = deque(maxlen=history_size)
         self.cpu_usage = deque(maxlen=history_size)
+        self.gpu_usage = deque(maxlen=history_size)
+        self.gpu_memory = deque(maxlen=history_size)
         
         self.start_time = None
         self.frame_count = 0
         self.process = psutil.Process()
+        
+        # Initialize NVIDIA GPU monitoring if available
+        self.has_gpu = False
+        if NVIDIA_GPU_AVAILABLE:
+            try:
+                pynvml.nvmlInit()
+                self.gpu_handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+                self.has_gpu = True
+            except Exception as e:
+                print(f"GPU monitoring initialization failed: {e}")
         
         # Performance flags
         self.enable_threading = True
@@ -53,23 +70,50 @@ class PerformanceMonitor:
         
     def get_metrics(self):
         """Get current performance metrics"""
-        return {
+        metrics = {
             'fps': np.mean(self.fps_history) if self.fps_history else 0,
             'processing_time': np.mean(self.processing_times) if self.processing_times else 0,
             'memory_usage': np.mean(self.memory_usage) if self.memory_usage else 0,
-            'cpu_usage': np.mean(self.cpu_usage) if self.cpu_usage else 0
+            'cpu_usage': np.mean(self.cpu_usage) if self.cpu_usage else 0,
         }
         
+        if self.has_gpu:
+            metrics.update({
+                'gpu_usage': np.mean(self.gpu_usage) if self.gpu_usage else 0,
+                'gpu_memory': np.mean(self.gpu_memory) if self.gpu_memory else 0
+            })
+            
+        return metrics
+        
     def _monitor_system(self):
-        """Monitor system resources in background thread"""
+        """Monitor system resources in a separate thread"""
         while self.monitoring:
             try:
-                self.memory_usage.append(self.process.memory_percent())
+                # CPU and Memory monitoring
                 self.cpu_usage.append(psutil.cpu_percent())
-            except:
-                pass
-            time.sleep(1)
-            
+                self.memory_usage.append(self.process.memory_percent())
+                
+                # GPU monitoring if available
+                if self.has_gpu:
+                    try:
+                        # GPU utilization
+                        gpu_util = pynvml.nvmlDeviceGetUtilizationRates(self.gpu_handle)
+                        self.gpu_usage.append(gpu_util.gpu)
+                        
+                        # GPU memory
+                        gpu_mem = pynvml.nvmlDeviceGetMemoryInfo(self.gpu_handle)
+                        gpu_mem_used_percent = (gpu_mem.used / gpu_mem.total) * 100
+                        self.gpu_memory.append(gpu_mem_used_percent)
+                    except Exception as e:
+                        print(f"GPU monitoring error: {e}")
+                        self.gpu_usage.append(0)
+                        self.gpu_memory.append(0)
+                
+                time.sleep(1)  # Update every second
+            except Exception as e:
+                print(f"Error monitoring system: {e}")
+                time.sleep(1)
+                
     def optimize_frame(self, frame):
         """Optimize frame based on performance metrics"""
         if not self.optimize_resolution:
@@ -112,7 +156,7 @@ class PerformanceMonitor:
     def get_performance_report(self):
         """Generate detailed performance report"""
         metrics = self.get_metrics()
-        return {
+        report = {
             'average_fps': metrics['fps'],
             'frame_time': metrics['processing_time'] * 1000,  # ms
             'memory_usage': metrics['memory_usage'],
@@ -124,3 +168,11 @@ class PerformanceMonitor:
                 'resolution': self.optimize_resolution
             }
         }
+        
+        if self.has_gpu:
+            report.update({
+                'gpu_usage': metrics['gpu_usage'],
+                'gpu_memory': metrics['gpu_memory']
+            })
+            
+        return report

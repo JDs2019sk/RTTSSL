@@ -179,3 +179,40 @@ class UIManager:
                    0.6, self.colors['text'], 2)
                    
         return frame
+        
+    def add_performance_overlay(self, frame, metrics):
+        """Add performance metrics overlay"""
+        height, width = frame.shape[:2]
+        margin = 10
+        line_height = 20
+        
+        # Background box
+        metrics_height = 100 if 'gpu_usage' not in metrics else 140
+        cv2.rectangle(frame, 
+                     (width - 200 - margin, margin),
+                     (width - margin, metrics_height + margin),
+                     self.colors['background'], -1)
+        
+        # Add metrics text
+        y = margin + line_height
+        cv2.putText(frame, f"FPS: {int(metrics['fps'])}", 
+                   (width - 190, y), self.font, 0.5, self.colors['text'], 1)
+                   
+        y += line_height
+        cv2.putText(frame, f"CPU: {metrics['cpu_usage']:.1f}%",
+                   (width - 190, y), self.font, 0.5, self.colors['text'], 1)
+                   
+        y += line_height
+        cv2.putText(frame, f"MEM: {metrics['memory_usage']:.1f}%",
+                   (width - 190, y), self.font, 0.5, self.colors['text'], 1)
+                   
+        if 'gpu_usage' in metrics:
+            y += line_height
+            cv2.putText(frame, f"GPU: {metrics['gpu_usage']:.1f}%",
+                      (width - 190, y), self.font, 0.5, self.colors['text'], 1)
+            
+            y += line_height
+            cv2.putText(frame, f"VRAM: {metrics['gpu_memory']:.1f}%",
+                      (width - 190, y), self.font, 0.5, self.colors['text'], 1)
+        
+        return frame
