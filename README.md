@@ -86,14 +86,14 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
 
 ### Training Mode Controls
 
-| Key | Function           | Description                                    |
-| --- | ------------------ | ---------------------------------------------- |
-| `Q` | Quit               | Exit training mode                             |
-| `N` | New Label          | Set a new label for recording                  |
-| `S` | Sample Recording   | Start/stop recording samples                   |
-| `T` | Train Model        | Start model training (min 100, max 1000/label) |
-| `R` | Retrain Gesture    | Retrain a specific gesture from scratch        |
-| `I` | Show Training Info | Show training information                      |
+| Key | Function           | Description                                  |
+| --- | ------------------ | -------------------------------------------- |
+| `Q` | Quit               | Exit training mode                           |
+| `N` | New Label          | Set a new label for recording                |
+| `S` | Sample Recording   | Start/stop recording samples                 |
+| `T` | Train Model        | Start model training (min 20, max 150/label) |
+| `R` | Retrain Gesture    | Retrain a specific gesture from scratch      |
+| `I` | Show Training Info | Show training information                    |
 
 For detailed training instructions, see [Training Guide](docs/TRAINING.md).
 
