@@ -47,7 +47,13 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
    python test_camera.py
    ```
 
-2. Train the gesture recognition model:
+2. Test your GPU:
+
+   ```bash
+   python test_gpu.py
+   ```
+
+3. Train the gesture recognition model:
 
    ```bash
    python -m src.gesture.model_trainer
@@ -55,7 +61,7 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 
 See [Training file](docs/TRAINING.md) for detailed training instructions.
 
-3. Run the main program:
+4. Run the main program:
    ```bash
    python main.py
    ```
