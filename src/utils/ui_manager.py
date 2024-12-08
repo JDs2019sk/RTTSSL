@@ -186,33 +186,70 @@ class UIManager:
         margin = 10
         line_height = 20
         
+        # Calculate required height for all metrics
+        num_lines = 8  # Base metrics
+        if 'gpu_usage' in metrics:
+            num_lines += 6  # Additional GPU metrics
+            
+        metrics_height = margin + (num_lines * line_height) + margin
+        
         # Background box
-        metrics_height = 100 if 'gpu_usage' not in metrics else 140
         cv2.rectangle(frame, 
-                     (width - 200 - margin, margin),
-                     (width - margin, metrics_height + margin),
+                     (width - 300 - margin, margin),
+                     (width - margin, metrics_height),
                      self.colors['background'], -1)
         
         # Add metrics text
-        y = margin + line_height
-        cv2.putText(frame, f"FPS: {int(metrics['fps'])}", 
-                   (width - 190, y), self.font, 0.5, self.colors['text'], 1)
-                   
-        y += line_height
-        cv2.putText(frame, f"CPU Usage: {metrics['cpu_usage']:.1f}%",
-                   (width - 190, y), self.font, 0.5, self.colors['text'], 1)
-                   
-        y += line_height
-        cv2.putText(frame, f"Memory Usage: {metrics['memory_usage']:.1f}%",
-                   (width - 190, y), self.font, 0.5, self.colors['text'], 1)
-                   
+        y = int(margin + line_height)  # Ensure y is integer
+        x = int(width - 290)  # Ensure x is integer
+        
+        # FPS Section
+        cv2.putText(frame, f"FPS: {int(metrics['fps'])} (Min: {int(metrics['min_fps'])}, Max: {int(metrics['max_fps'])})", 
+                   (x, y), self.font, 0.5, self.colors['primary'], 1)
+        
+        y = int(y + line_height)
+        cv2.putText(frame, f"Frame Time: {metrics['avg_frame_time']:.1f}ms", 
+                   (x, y), self.font, 0.5, self.colors['text'], 1)
+        
+        # CPU Section
+        y = int(y + line_height * 1.5)
+        cv2.putText(frame, f"CPU Usage: {metrics['cpu_usage']:.1f}% ({metrics['cpu_cores']} cores)", 
+                   (x, y), self.font, 0.5, self.colors['secondary'], 1)
+        
+        y = int(y + line_height)
+        cv2.putText(frame, f"CPU Frequency: {metrics['cpu_freq']:.0f}MHz",
+                   (x, y), self.font, 0.5, self.colors['text'], 1)
+        
+        # Memory Section
+        y = int(y + line_height * 1.5)
+        cv2.putText(frame, f"RAM Usage: {metrics['memory_usage']:.1f}%",
+                   (x, y), self.font, 0.5, self.colors['secondary'], 1)
+        
+        y = int(y + line_height)
+        cv2.putText(frame, f"RAM Available: {metrics['memory_available']:.1f}GB / {metrics['memory_total']:.1f}GB",
+                   (x, y), self.font, 0.5, self.colors['text'], 1)
+        
+        # GPU Section (if available)
         if 'gpu_usage' in metrics:
-            y += line_height
+            y = int(y + line_height * 1.5)
             cv2.putText(frame, f"GPU Usage: {metrics['gpu_usage']:.1f}%",
-                      (width - 190, y), self.font, 0.5, self.colors['text'], 1)
+                      (x, y), self.font, 0.5, self.colors['secondary'], 1)
             
-            y += line_height
-            cv2.putText(frame, f"GPU Memory: {metrics['gpu_memory']:.1f}%",
-                      (width - 190, y), self.font, 0.5, self.colors['text'], 1)
+            y = int(y + line_height)
+            cv2.putText(frame, f"GPU Memory: {metrics['gpu_memory_used']:.0f}MB / {metrics['gpu_memory_total']:.0f}MB",
+                      (x, y), self.font, 0.5, self.colors['text'], 1)
+            
+            y = int(y + line_height)
+            cv2.putText(frame, f"GPU Temperature: {metrics['gpu_temp']}°C",
+                      (x, y), self.font, 0.5, self.colors['text'], 1)
+            
+            y = int(y + line_height)
+            cv2.putText(frame, f"GPU Power: {metrics['gpu_power']:.1f}W",
+                      (x, y), self.font, 0.5, self.colors['text'], 1)
+        
+        # Total frames
+        y = int(y + line_height * 1.5)
+        cv2.putText(frame, f"Total Frames: {metrics['total_frames']}",
+                   (x, y), self.font, 0.5, self.colors['text'], 1)
         
         return frame

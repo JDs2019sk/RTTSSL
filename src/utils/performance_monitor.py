@@ -37,8 +37,15 @@ class PerformanceMonitor:
                 self.gpu_handle = pynvml.nvmlDeviceGetHandleByIndex(0)
                 self.has_gpu = True
                 gpu_name = pynvml.nvmlDeviceGetName(self.gpu_handle)
+                # Handle both string and bytes types
+                try:
+                    if isinstance(gpu_name, bytes):
+                        gpu_name = gpu_name.decode('utf-8')
+                except AttributeError:
+                    # gpu_name is already a string
+                    pass
                 gpu_info = pynvml.nvmlDeviceGetMemoryInfo(self.gpu_handle)
-                print(f"Detected GPU: {gpu_name.decode('utf-8')}")
+                print(f"Detected GPU: {gpu_name}")
                 print(f"Total Memory: {gpu_info.total / 1024**2:.0f}MB")
                 print(f"Used Memory: {gpu_info.used / 1024**2:.0f}MB")
                 print(f"Free Memory: {gpu_info.free / 1024**2:.0f}MB")
@@ -95,14 +102,38 @@ class PerformanceMonitor:
             'processing_time': np.mean(self.processing_times) if self.processing_times else 0,
             'memory_usage': np.mean(self.memory_usage) if self.memory_usage else 0,
             'cpu_usage': np.mean(self.cpu_usage) if self.cpu_usage else 0,
+            'total_frames': self.frame_count,
+            'avg_frame_time': 1000 * np.mean(self.processing_times) if self.processing_times else 0,  # in ms
+            'min_fps': np.min(self.fps_history) if self.fps_history else 0,
+            'max_fps': np.max(self.fps_history) if self.fps_history else 0,
+            'memory_total': psutil.virtual_memory().total / (1024**3),  # in GB
+            'memory_available': psutil.virtual_memory().available / (1024**3),  # in GB
+            'cpu_freq': psutil.cpu_freq().current if hasattr(psutil.cpu_freq(), 'current') else 0,
+            'cpu_cores': psutil.cpu_count()
         }
         
         if self.has_gpu:
-            metrics.update({
-                'gpu_usage': np.mean(self.gpu_usage) if self.gpu_usage else 0,
-                'gpu_memory': np.mean(self.gpu_memory) if self.gpu_memory else 0
-            })
-            
+            try:
+                gpu_temp = pynvml.nvmlDeviceGetTemperature(self.gpu_handle, pynvml.NVML_TEMPERATURE_GPU)
+                gpu_power = pynvml.nvmlDeviceGetPowerUsage(self.gpu_handle) / 1000.0  # Convert mW to W
+                gpu_info = pynvml.nvmlDeviceGetMemoryInfo(self.gpu_handle)
+                
+                metrics.update({
+                    'gpu_usage': np.mean(self.gpu_usage) if self.gpu_usage else 0,
+                    'gpu_memory': np.mean(self.gpu_memory) if self.gpu_memory else 0,
+                    'gpu_temp': gpu_temp,
+                    'gpu_power': gpu_power,
+                    'gpu_memory_total': gpu_info.total / (1024**2),  # in MB
+                    'gpu_memory_used': gpu_info.used / (1024**2),  # in MB
+                    'gpu_memory_free': gpu_info.free / (1024**2)  # in MB
+                })
+            except Exception as e:
+                print(f"Error getting GPU metrics: {e}")
+                metrics.update({
+                    'gpu_usage': 0,
+                    'gpu_memory': 0
+                })
+        
         return metrics
         
     def _monitor_system(self):
