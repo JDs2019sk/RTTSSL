@@ -9,6 +9,7 @@ RTTSSL is a Python-based system designed to visually translate letters, words an
 - Facial Recognition
 - Model training capabilities
 - Recording method for your translations
+- Performance monitoring and optimization
 
 ## 🔤 Requirements
 
@@ -58,6 +59,27 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
    ```bash
    python main.py
    ```
+
+## 📊 Performance Monitoring
+
+### System Performance
+- **CPU Usage**: Current CPU utilization and number of cores
+- **CPU Frequency**: Current processor clock speed
+- **RAM Usage**: Memory usage percentage and available/total RAM
+- **Frame Statistics**: FPS count, frame processing time, and total frames processed
+
+### GPU Metrics (NVIDIA Only)
+- **GPU Usage**: Current GPU utilization percentage
+- **GPU Memory**: Used and total GPU memory
+- **Temperature**: GPU core temperature
+- **Power Usage**: Current GPU power consumption
+
+### Performance Optimization
+The system automatically optimizes performance by:
+- Dynamically adjusting frame resolution based on FPS
+- Enabling GPU acceleration when available
+- Multi-threaded processing for improved performance
+- Automatic resource management and cleanup
 
 ## ⌨️ Default Keybinds
 
