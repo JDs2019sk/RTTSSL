@@ -119,6 +119,7 @@ RTTSSL/
 ├── main.py               # Main application entry point
 ├── requirements.txt      # Package dependencies
 ├── test_camera.py        # Camera testing utility
+├── gpu_test.py           # GPU test for performance tracking (NVIDIA only)
 └── train.py              # Model training script
 ```
 
