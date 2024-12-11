@@ -56,11 +56,11 @@ python -m src.gesture.model_trainer
 
 #### Training Commands:
 
-- `s`: Start/stop recording samples
 - `n`: Create/set new label
-- `r`: Retrain specific label
-- `i`: Show training information
+- `s`: Start/stop recording samples
 - `t`: Train the model
+- `i`: Show training information
+- `r`: Retrain specific label
 - `q`: Quit
 
 ### 2. Dataset Training
