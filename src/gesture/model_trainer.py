@@ -105,7 +105,7 @@ class ModelTrainer:
 
     def _load_config(self):
         """Load configuration from YAML file"""
-        config_path = os.path.join('config', 'keybinds.yaml')
+        config_path = os.path.join('config', 'configs.yaml')
         try:
             with open(config_path, 'r') as f:
                 return yaml.safe_load(f)

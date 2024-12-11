@@ -10,7 +10,7 @@ import os
 
 class HelpMenu:
     def __init__(self):
-        self.config_path = os.path.join('config', 'keybinds.yaml')
+        self.config_path = os.path.join('config', 'configs.yaml')
         self.keybinds = self._load_config()
         
     def _load_config(self):

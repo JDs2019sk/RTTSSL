@@ -58,7 +58,7 @@ class RTTSSL:
         
     def _load_config(self):
         """Load or create keybinds configuration"""
-        config_path = os.path.join('config', 'keybinds.yaml')
+        config_path = os.path.join('config', 'configs.yaml')
         default_config = {
             'keybinds': {
                 'letter_mode': '1',
