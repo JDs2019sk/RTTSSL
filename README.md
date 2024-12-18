@@ -110,7 +110,7 @@ For detailed training instructions, see [Training Guide](docs/TRAINING.md).
 ```
 RTTSSL/
 ├── config/               # Configuration files for the project
-│   └── configs.yaml     # keybinds/config file
+│   └── configs.yaml      # keybinds/configs file
 ├── data/                 # Raw and processed data storage
 ├── datasets/             # Training and testing datasets
 ├── docs/                 # Documentation

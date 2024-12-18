@@ -37,13 +37,6 @@ class PerformanceMonitor:
                 self.gpu_handle = pynvml.nvmlDeviceGetHandleByIndex(0)
                 self.has_gpu = True
                 gpu_name = pynvml.nvmlDeviceGetName(self.gpu_handle)
-                # Handle both string and bytes types
-                try:
-                    if isinstance(gpu_name, bytes):
-                        gpu_name = gpu_name.decode('utf-8')
-                except AttributeError:
-                    # gpu_name is already a string
-                    pass
                 gpu_info = pynvml.nvmlDeviceGetMemoryInfo(self.gpu_handle)
                 print(f"Detected GPU: {gpu_name}")
                 print(f"Total Memory: {gpu_info.total / 1024**2:.0f}MB")

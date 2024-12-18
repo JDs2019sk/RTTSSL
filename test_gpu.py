@@ -12,7 +12,9 @@ try:
     
     # Get GPU name
     name = pynvml.nvmlDeviceGetName(handle)
-    print(f"GPU Name: {name.decode('utf-8')}")
+    if isinstance(name, bytes):
+        name = name.decode('utf-8')
+    print(f"GPU Name: {name}")
     
     # Get memory info
     memory = pynvml.nvmlDeviceGetMemoryInfo(handle)
