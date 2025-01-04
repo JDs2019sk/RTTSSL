@@ -22,7 +22,7 @@ def load_config():
             'keybinds': {
                 'save_image': 's',
                 'reset_camera': 'r',
-                'quit_test': 'q'
+                'quit_test': 'q' 
             },
             'camera_test': {
                 'window_size': {'width': 1280, 'height': 720},
