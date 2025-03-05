@@ -113,6 +113,9 @@ RTTSSL/
 │   └── configs.yaml      # Keybinds/configs file
 ├── data/                 # Raw and processed data storage
 ├── datasets/             # Training and testing datasets
+│   ├── gesture/          # Images to train gestures
+│   ├── letter/           # Images to train letters
+│   └── word/             # Images to train words
 ├── docs/                 # Documentation
 │   └── TRAINING.md       # Training guide
 ├── logs/                 # Log files from training and execution

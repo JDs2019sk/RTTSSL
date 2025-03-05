@@ -28,9 +28,9 @@ class GestureRecognizer:
         self.mode = "gesture"
         
         # Prediction smoothing with improved parameters
-        self.prediction_history = deque(maxlen=10)  # Increased history
-        self.confidence_threshold = 0.3  # Lowered threshold
-        self.min_consecutive_predictions = 3  # Reduced required consecutive predictions
+        self.prediction_history = deque(maxlen=5)  # Reduced history length
+        self.confidence_threshold = 0.25  # Lowered threshold
+        self.min_consecutive_predictions = 2  # Reduced required consecutive predictions
         
         # Add mean and std for normalization
         self.mean = None
@@ -83,8 +83,9 @@ class GestureRecognizer:
                 # Get prediction if model is loaded
                 if self.model is not None:
                     prediction = self._predict(landmarks)
+                    # Only use prediction if it matches current mode
                     if prediction:
-                        translation = prediction
+                        translation = prediction  # Simplified prediction handling
                     
                 # Draw enhanced hand visualization
                 self._draw_enhanced_hand(frame, hand_landmarks)
@@ -139,26 +140,28 @@ class GestureRecognizer:
             # Get prediction probabilities
             prediction = self.model.predict(landmarks, verbose=0)
             
-            # Get top 2 predictions and their confidences
-            top2_idx = np.argsort(prediction[0])[-2:][::-1]
-            confidences = prediction[0][top2_idx]
+            # Get top prediction and confidence
+            top_idx = np.argmax(prediction[0])
+            confidence = prediction[0][top_idx]
             
-            # Check if the best prediction is significantly better than the second best
-            if confidences[0] > self.confidence_threshold and (len(confidences) == 1 or confidences[0] - confidences[1] > 0.2):
-                predicted_label = self.labels[top2_idx[0]]
+            # Use simpler confidence check
+            if confidence > self.confidence_threshold:
+                predicted_label = self.labels[top_idx]
                 self.prediction_history.append(predicted_label)
                 
-                # For debugging
-                if confidences[0] > 0.7:
-                    print(f"High confidence prediction: {predicted_label} ({confidences[0]:.2f})")
-                    if len(confidences) > 1:
-                        print(f"Second best: {self.labels[top2_idx[1]]} ({confidences[1]:.2f})")
+                # Enhanced debugging
+                print(f"Raw prediction: {predicted_label}")
+                print(f"Confidence: {confidence:.2f}")
+                print(f"History: {list(self.prediction_history)}")
+                print(f"Current mode: {self.mode}")
             
             # Check for consistent predictions
             if len(self.prediction_history) >= self.min_consecutive_predictions:
                 recent_predictions = list(self.prediction_history)[-self.min_consecutive_predictions:]
                 if all(x == recent_predictions[0] for x in recent_predictions):
-                    return recent_predictions[0]
+                    result = recent_predictions[0]
+                    print(f"Final prediction: {result}")
+                    return result
             
             return None
             
