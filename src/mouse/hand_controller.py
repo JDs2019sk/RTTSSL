@@ -1,7 +1,5 @@
 """
-Módulo de Controlo do Rato
-Fornece funcionalidade para controlar o cursor do rato usando gestos
-capturados através da webcam.
+(MouseControl)
 """
 
 import cv2
