@@ -1,9 +1,3 @@
-"""
-Help Menu Module
-Provides functionality to display an interactive help menu showing all available
-keybinds and their functions.
-"""
-
 import cv2
 import yaml
 import os
@@ -17,9 +11,8 @@ class HelpMenu:
         try:
             with open(self.config_path, 'r') as f:
                 config = yaml.safe_load(f)
-                # Filtrar apenas as keybinds principais
                 main_keybinds = {
-                    'Mode Selection': {
+                    'Seleção de Modo': {
                         config['keybinds']['letter_mode']: 'Letter Mode',
                         config['keybinds']['word_mode']: 'Word Mode',
                         config['keybinds']['gesture_mode']: 'Gesture Mode',
@@ -27,7 +20,7 @@ class HelpMenu:
                         config['keybinds']['face_detection']: 'Face Detection',
                         config['keybinds']['toggle_detection_mode']: 'Toggle Face Mode'
                     },
-                    'Controls': {
+                    'Controlos': {
                         config['keybinds']['toggle_fps']: 'Toggle FPS',
                         config['keybinds']['toggle_performance']: 'Toggle Performance',
                         config['keybinds']['toggle_recording']: 'Toggle Recording',
@@ -37,9 +30,9 @@ class HelpMenu:
                 }
                 return main_keybinds
         except Exception as e:
-            print(f"Error loading config: {e}")
+            print(f"Erro ao carregar configuração: {e}")
             return {
-                'Mode Selection': {
+                'Seleção de Modo': {
                     '1': 'Letter Mode',
                     '2': 'Word Mode',
                     '3': 'Gesture Mode',
@@ -47,7 +40,7 @@ class HelpMenu:
                     'f': 'Face Detection',
                     'e': 'Toggle Face Mode'
                 },
-                'Controls': {
+                'Controlos': {
                     'tab': 'Toggle FPS',
                     'p': 'Toggle Performance',
                     'r': 'Toggle Recording',
@@ -57,24 +50,19 @@ class HelpMenu:
             }
 
     def draw(self, frame):
-        """Draw help menu overlay on the frame"""
-        # Create semi-transparent overlay
         overlay = frame.copy()
         cv2.rectangle(overlay, (50, 50), (600, 460), (0, 0, 0), -1)
         
-        # Add title
         cv2.putText(overlay, "Help Menu", (70, 90),
                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         
-        # Add keybinds by category
         y_pos = 130
-        
-        # Mode Selection
-        cv2.putText(overlay, "Mode Selection:", (70, y_pos),
+
+        cv2.putText(overlay, "Seleção de Modo:", (70, y_pos),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         y_pos += 30
         
-        for key, action in self.keybinds['Mode Selection'].items():
+        for key, action in self.keybinds['Seleção de Modo'].items():
             text = f"{key.upper()}: {action}"
             cv2.putText(overlay, text, (90, y_pos),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
@@ -82,17 +70,15 @@ class HelpMenu:
             
         y_pos += 10
         
-        # Controls
-        cv2.putText(overlay, "Controls:", (70, y_pos),
+        cv2.putText(overlay, "Controlos:", (70, y_pos),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         y_pos += 30
         
-        for key, action in self.keybinds['Controls'].items():
+        for key, action in self.keybinds['Controlos'].items():
             text = f"{key.upper()}: {action}"
             cv2.putText(overlay, text, (90, y_pos),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
             y_pos += 25
         
-        # Blend overlay with original frame
         alpha = 0.7
         return cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)

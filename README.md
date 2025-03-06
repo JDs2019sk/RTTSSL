@@ -109,6 +109,8 @@ For detailed training instructions, see [Training Guide](docs/TRAINING.md).
 
 ```
 RTTSSL/
+├── arduino config/       # arduino configuration folder
+│   └── script.py         # arduino function
 ├── config/               # Configuration files for the project
 │   └── configs.yaml      # Keybinds/configs file
 ├── data/                 # Raw and processed data storage
@@ -122,15 +124,15 @@ RTTSSL/
 ├── models/               # Trained models
 ├── recordings/           # Recorded video files
 ├── src/                  # Source code directory
-│   ├── gesture/          # Gesture recognition modules
 │   ├── face/             # Face detection modules
+│   ├── gesture/          # Gesture recognition modules
+│   ├── mouse/            # mouse control modules
 │   └── utils/            # Utility functions
 ├── test_images/          # Images taken in camera test
 ├── main.py               # Main application entry point
 ├── requirements.txt      # Package dependencies
 ├── test_camera.py        # Camera testing utility
-├── gpu_test.py           # GPU test for performance tracking (NVIDIA only)
-└── train.py              # Model training script
+└── gpu_test.py           # GPU test for performance tracking (NVIDIA only)
 ```
 
 #### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/`]

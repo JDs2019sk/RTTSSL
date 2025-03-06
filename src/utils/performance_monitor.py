@@ -1,8 +1,3 @@
-"""
-Performance Monitor Module
-Provides advanced performance monitoring and optimization features.
-"""
-
 import time
 import psutil
 import numpy as np
@@ -28,7 +23,7 @@ class PerformanceMonitor:
         self.frame_count = 0
         self.process = psutil.Process()
         
-        # Initialize NVIDIA GPU monitoring if available
+        # monitorização da GPU 
         self.has_gpu = False
         if NVIDIA_GPU_AVAILABLE:
             try:
@@ -58,38 +53,35 @@ class PerformanceMonitor:
             print("GPU metrics will not be available.")
             print("Install the library with: pip install nvidia-ml-py3")
         
-        # Performance flags
+        # flags de desempenho
         self.enable_threading = True
         self.enable_gpu = True
         self.optimize_resolution = True
         
-        # Start monitoring thread
+        # thread de monitorização
         self.monitoring = True
         self.monitor_thread = threading.Thread(target=self._monitor_system)
         self.monitor_thread.daemon = True
         self.monitor_thread.start()
         
     def start_frame(self):
-        """Start timing a new frame"""
         self.start_time = time.time()
         
     def end_frame(self):
-        """End frame timing and update metrics"""
         if self.start_time is None:
             return
             
-        # Calculate processing time
+        # calculo do tempo de processamento
         processing_time = time.time() - self.start_time
         self.processing_times.append(processing_time)
         
-        # Update FPS
+        # atualizar FPS
         self.frame_count += 1
         self.fps_history.append(1.0 / processing_time if processing_time > 0 else 0)
         
         self.start_time = None
         
     def get_metrics(self):
-        """Get current performance metrics"""
         metrics = {
             'fps': np.mean(self.fps_history) if self.fps_history else 0,
             'processing_time': np.mean(self.processing_times) if self.processing_times else 0,
@@ -130,26 +122,25 @@ class PerformanceMonitor:
         return metrics
         
     def _monitor_system(self):
-        """Monitor system resources in a separate thread"""
         while self.monitoring:
             try:
-                # CPU and Memory monitoring
+                # monitorização da CPU e memória
                 self.cpu_usage.append(psutil.cpu_percent())
                 self.memory_usage.append(self.process.memory_percent())
                 
-                # GPU monitoring if available
+                # monitorização da GPU (se disponível)
                 if self.has_gpu:
                     try:
-                        # GPU utilization
+                        # utilização da GPU
                         gpu_util = pynvml.nvmlDeviceGetUtilizationRates(self.gpu_handle)
                         self.gpu_usage.append(float(gpu_util.gpu))
                         
-                        # GPU memory
+                        # memória da GPU
                         gpu_mem = pynvml.nvmlDeviceGetMemoryInfo(self.gpu_handle)
                         gpu_mem_used_percent = (float(gpu_mem.used) / float(gpu_mem.total)) * 100.0
                         self.gpu_memory.append(gpu_mem_used_percent)
                         
-                        # Print debug info every 10 seconds
+                        # informações de debug a cada 10 segundos
                         if len(self.gpu_usage) % 10 == 0:
                             print(f"\nGPU Usage: {self.gpu_usage[-1]:.1f}%")
                             print(f"GPU Memory: {self.gpu_memory[-1]:.1f}%")
@@ -158,13 +149,12 @@ class PerformanceMonitor:
                         self.gpu_usage.append(0.0)
                         self.gpu_memory.append(0.0)
                 
-                time.sleep(1)  # Update every second
+                time.sleep(1)  # atualizar a cada segundo
             except Exception as e:
                 print(f"Error monitoring system: {e}")
                 time.sleep(1)
                 
     def optimize_frame(self, frame):
-        """Optimize frame based on performance metrics"""
         if not self.optimize_resolution:
             return frame
             
@@ -172,8 +162,8 @@ class PerformanceMonitor:
         current_fps = metrics['fps']
         target_fps = 30
         
-        if current_fps < target_fps * 0.8:  # If FPS is too low
-            # Reduce resolution
+        if current_fps < target_fps * 0.8:  # se o FPS for baixo
+            # reduzir resolução
             height, width = frame.shape[:2]
             scale_factor = max(0.5, min(1.0, current_fps / target_fps))
             new_width = int(width * scale_factor)
@@ -183,7 +173,7 @@ class PerformanceMonitor:
         return frame
         
     def get_optimization_suggestions(self):
-        """Get performance optimization suggestions"""
+        # sugestões para melhorar o desempenho
         metrics = self.get_metrics()
         suggestions = []
         
@@ -197,13 +187,11 @@ class PerformanceMonitor:
         return suggestions
         
     def cleanup(self):
-        """Cleanup monitoring resources"""
         self.monitoring = False
         if self.monitor_thread.is_alive():
             self.monitor_thread.join()
             
     def get_performance_report(self):
-        """Generate detailed performance report"""
         metrics = self.get_metrics()
         report = {
             'average_fps': metrics['fps'],

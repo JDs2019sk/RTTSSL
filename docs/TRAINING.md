@@ -20,22 +20,11 @@ RTTSSL supports four training modes:
 
 1. **Gesture Mode**: For training gestures (e.g., 👍, ✌️, etc.)
 
-   - Ideal for simple gesture recognition
-   - Recommended for commands and controls
-
 2. **Letter Mode**: For training sign language alphabet
-
-   - Optimized for individual letter recognition
-   - Foundation for sign language communication
 
 3. **Word Mode**: For training sign language words
 
-   - Enables complete word recognition
-   - Supports movement sequences
-
 4. **Face Mode**: For training facial recognition
-   - Detects and recognizes facial expressions
-   - Complements gesture recognition
 
 ## Training Methods
 

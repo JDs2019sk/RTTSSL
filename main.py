@@ -1,7 +1,6 @@
 """
-RTTSSL (Real-Time Translation of Signs, Speech, and Letters)
-Main program that integrates all components for gesture recognition,
-face detection, and mouse control with enhanced visuals and performance.
+RTTSSL
+Programa principal.
 """
 
 import cv2
@@ -20,10 +19,7 @@ from src.utils.performance_monitor import PerformanceMonitor
 
 class RTTSSL:
     def __init__(self):
-        # Load configuration
         self.config = self._load_config()
-        
-        # Initialize components
         self.gesture_recognizer = GestureRecognizer()
         self.face_detector = FaceDetector()
         self.hand_controller = HandController()
@@ -31,8 +27,6 @@ class RTTSSL:
         self.help_menu = HelpMenu()
         self.ui_manager = UIManager()
         self.performance_monitor = PerformanceMonitor()
-        
-        # State flags
         self.show_fps = False
         self.show_help = False
         self.show_performance = False
@@ -41,23 +35,16 @@ class RTTSSL:
         self.recording = False
         self.last_notification = None
         self.notification_time = 0
-        
-        # Key state tracking
         self.key_states = {}
-        self.key_cooldown = 0.2  # seconds
+        self.key_cooldown = 0.2  
         self.last_key_press = {}
-        
-        # Window settings
         self.window_name = "RTTSSL"
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
-        
-        # Translation box
         self.current_translation = ""
         self.translation_time = 0
-        self.translation_duration = 3.0  # seconds
+        self.translation_duration = 3.0  
         
     def _load_config(self):
-        """Load or create keybinds configuration"""
         config_path = os.path.join('config', 'configs.yaml')
         default_config = {
             'keybinds': {
@@ -93,28 +80,22 @@ class RTTSSL:
         }
 
         try:
-            # Create config directory if it doesn't exist
             os.makedirs('config', exist_ok=True)
             
-            # If file doesn't exist, create with default configuration
             if not os.path.exists(config_path):
                 with open(config_path, 'w') as file:
                     yaml.dump(default_config, file, default_flow_style=False, sort_keys=False)
                 print("Created default configuration file")
                 return default_config
                 
-            # Load existing configuration
             with open(config_path, 'r') as file:
                 config = yaml.safe_load(file)
                 
-            # Check if all required keys exist
             if not all(key in config for key in default_config.keys()):
                 print("Warning: Missing keys in config file. Using defaults for missing keys.")
-                # Update configuration with default values for missing keys
                 for key, value in default_config.items():
                     if key not in config:
                         config[key] = value
-                # Save updated configuration
                 with open(config_path, 'w') as file:
                     yaml.dump(config, file, default_flow_style=False, sort_keys=False)
                     
@@ -126,7 +107,6 @@ class RTTSSL:
             return default_config
             
     def _can_press_key(self, key):
-        """Check if enough time has passed since last key press"""
         current_time = time.time()
         if key not in self.last_key_press:
             self.last_key_press[key] = 0
@@ -136,16 +116,12 @@ class RTTSSL:
         return False
             
     def run(self):
-        """Main program loop"""
         cap = cv2.VideoCapture(0)
-        
-        # Set optimal camera properties
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         cap.set(cv2.CAP_PROP_FPS, 60)
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Reduce latency
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  
         
-        # Set window properties
         cv2.setWindowProperty(self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
         
         try:
@@ -156,10 +132,8 @@ class RTTSSL:
                 if not ret:
                     continue
                     
-                # Create a clean copy of the frame
                 display_frame = frame.copy()
                 
-                # Process frame based on active mode
                 if self.active_mode in ["gesture", "letter", "word"]:
                     frame, translation = self.gesture_recognizer.process_frame(frame)
                     if translation:
@@ -169,11 +143,9 @@ class RTTSSL:
                 elif self.active_mode == "mouse":
                     frame = self.hand_controller.process_frame(frame)
                     
-                # Update and draw UI elements
                 self.fps_counter.update()
                 metrics = self.performance_monitor.get_metrics()
                 
-                # Add status bar
                 frame = self.ui_manager.add_status_bar(
                     frame, self.active_mode,
                     fps=metrics['fps'] if self.show_fps else None,
@@ -182,30 +154,23 @@ class RTTSSL:
                              "Iris" if self.active_mode == "face" and self.face_detector.mode == "iris" else None
                 )
                 
-                # Show current translation
                 if self.current_translation:
                     frame = self._draw_translation_box(frame)
                 
-                # Show performance metrics
                 if self.show_performance:
                     frame = self._draw_performance_metrics(frame, metrics)
                     
-                # Show help menu
                 if self.show_help:
                     frame = self.help_menu.draw(frame)
                     
-                # Show notification if exists
                 if self.last_notification:
                     self._update_notification(frame)
-                    
-                # Record if enabled
+                
                 if self.recording:
                     self._record_frame(frame)
-                    
-                # Display frame
+                
                 cv2.imshow(self.window_name, frame)
                 
-                # Handle keyboard events
                 keybinds = self.config['keybinds']
                 modes = self.config['modes']
                 
@@ -227,7 +192,6 @@ class RTTSSL:
                         self.gesture_recognizer.set_mode("gesture")
                         self._show_notification("Gesture Recognition Mode", 'info')
                     
-                # Mouse control
                 elif keyboard.is_pressed(keybinds['mouse_control']) and self._can_press_key('mouse_control'):
                     if modes['mouse']['enabled']:
                         self.active_mode = "mouse" if self.active_mode != "mouse" else "gesture"
@@ -236,7 +200,6 @@ class RTTSSL:
                             'info'
                         )
                     
-                # Face detection
                 elif keyboard.is_pressed(keybinds['face_detection']) and self._can_press_key('face_detection'):
                     if modes['face']['enabled']:
                         self.active_mode = "face" if self.active_mode != "face" else "gesture"
@@ -245,26 +208,21 @@ class RTTSSL:
                             'info'
                         )
                     
-                # Toggle detection mode (face mesh/iris)
                 elif keyboard.is_pressed(keybinds['toggle_detection_mode']) and self._can_press_key('toggle_detection'):
                     if self.active_mode == "face" and modes['face']['enabled']:
                         self.face_detector.toggle_mode()
                         current_mode = self.face_detector.get_mode()
                         self._show_notification(f"Face Detection Mode: {current_mode.capitalize()}", 'info')
                         
-                # Performance display
                 elif keyboard.is_pressed(keybinds['toggle_performance']) and self._can_press_key('toggle_performance'):
                     self.show_performance = not self.show_performance
                     
-                # FPS display
                 elif keyboard.is_pressed(keybinds['toggle_fps']) and self._can_press_key('toggle_fps'):
                     self.show_fps = not self.show_fps
                     
-                # Help menu
                 elif keyboard.is_pressed(keybinds['help_menu']) and self._can_press_key('help_menu'):
                     self.show_help = not self.show_help
                     
-                # Recording
                 elif keyboard.is_pressed(keybinds['toggle_recording']) and self._can_press_key('toggle_recording'):
                     self.recording = not self.recording
                     if not self.recording and hasattr(self, 'video_writer'):
@@ -275,7 +233,7 @@ class RTTSSL:
                         'warning' if self.recording else 'info'
                     )
                     
-                if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
+                if cv2.waitKey(1) & 0xFF == 27: 
                     break
                     
                 self.performance_monitor.end_frame()
@@ -286,27 +244,20 @@ class RTTSSL:
             print(f"\nError: {e}")
         finally:
             print("\nCleaning...")
-            # Cleanup video writer if recording
             if hasattr(self, 'video_writer'):
                 self.video_writer.release()
-            # Save face names
             if self.face_detector and hasattr(self.face_detector, '_save_face_names'):
                 self.face_detector._save_face_names()
-            # Cleanup performance monitor
             self.performance_monitor.cleanup()
-            # Release camera
             cap.release()
-            # Close all windows
             cv2.destroyAllWindows()
             print("Programme closed.")
 
     def _update_translation(self, translation):
-        """Update current translation and reset timer"""
         self.current_translation = translation
         self.translation_time = time.time()
         
     def _draw_translation_box(self, frame):
-        """Draw translation box with current translation"""
         if not self.current_translation:
             return frame
             
@@ -315,10 +266,8 @@ class RTTSSL:
             self.current_translation = ""
             return frame
             
-        # Get frame dimensions
         height, width = frame.shape[:2]
         
-        # Calculate box dimensions and position
         text_size = cv2.getTextSize(self.current_translation, cv2.FONT_HERSHEY_SIMPLEX, 1.5, 2)[0]
         box_width = text_size[0] + 40
         box_height = text_size[1] + 40
@@ -326,32 +275,26 @@ class RTTSSL:
         x = (width - box_width) // 2
         y = height - box_height - 100
         
-        # Create semi-transparent overlay
         overlay = frame.copy()
         
-        # Draw background box with rounded corners
         cv2.rectangle(overlay, (x, y), (x + box_width, y + box_height),
                      (0, 0, 0), -1)
         
-        # Draw text
         text_x = x + 20
         text_y = y + box_height - 20
         cv2.putText(overlay, self.current_translation,
                    (text_x, text_y),
                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2)
                    
-        # Add fade effect based on time
         alpha = min(1.0, (self.translation_duration - (current_time - self.translation_time)) / 0.5)
         cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
         
         return frame
         
     def _handle_keyboard(self):
-        """Handle keyboard events with improved key detection"""
         keybinds = self.config['keybinds']
         modes = self.config['modes']
         
-        # Mode switching with cooldown
         if keyboard.is_pressed(keybinds['letter_mode']) and self._can_press_key('letter_mode'):
             if modes['letter']['enabled']:
                 self.active_mode = "letter"
@@ -370,7 +313,6 @@ class RTTSSL:
                 self.gesture_recognizer.set_mode("gesture")
                 self._show_notification("Gesture Recognition Mode", 'info')
             
-        # Mouse control
         elif keyboard.is_pressed(keybinds['mouse_control']) and self._can_press_key('mouse_control'):
             if modes['mouse']['enabled']:
                 self.active_mode = "mouse" if self.active_mode != "mouse" else "gesture"
@@ -379,7 +321,6 @@ class RTTSSL:
                     'info'
                 )
             
-        # Face detection
         elif keyboard.is_pressed(keybinds['face_detection']) and self._can_press_key('face_detection'):
             if modes['face']['enabled']:
                 self.active_mode = "face" if self.active_mode != "face" else "gesture"
@@ -388,26 +329,21 @@ class RTTSSL:
                     'info'
                 )
             
-        # Toggle detection mode (face mesh/iris)
         elif keyboard.is_pressed(keybinds['toggle_detection_mode']) and self._can_press_key('toggle_detection'):
             if self.active_mode == "face" and modes['face']['enabled']:
                 self.face_detector.toggle_mode()
                 current_mode = self.face_detector.get_mode()
                 self._show_notification(f"Face Detection Mode: {current_mode.capitalize()}", 'info')
                 
-        # Performance display
         elif keyboard.is_pressed(keybinds['toggle_performance']) and self._can_press_key('toggle_performance'):
             self.show_performance = not self.show_performance
             
-        # FPS display
         elif keyboard.is_pressed(keybinds['toggle_fps']) and self._can_press_key('toggle_fps'):
             self.show_fps = not self.show_fps
             
-        # Help menu
         elif keyboard.is_pressed(keybinds['help_menu']) and self._can_press_key('help_menu'):
             self.show_help = not self.show_help
             
-        # Recording
         elif keyboard.is_pressed(keybinds['toggle_recording']) and self._can_press_key('toggle_recording'):
             self.recording = not self.recording
             if not self.recording and hasattr(self, 'video_writer'):
@@ -419,47 +355,38 @@ class RTTSSL:
             )
             
     def _show_notification(self, text, type='info'):
-        """Show a temporary notification"""
         self.last_notification = (text, type)
         self.notification_time = time.time()
         
     def _update_notification(self, frame):
-        """Update and remove notification if needed"""
         if self.last_notification:
             current_time = time.time()
             duration = current_time - self.notification_time
             
-            if duration < 2.0:  # Show notification for 2 seconds
+            if duration < 2.0: 
                 text, type = self.last_notification
                 frame = self.ui_manager.add_notification(frame, text, type)
             else:
                 self.last_notification = None
                 
     def _draw_performance_metrics(self, frame, metrics):
-        """Draw performance metrics on frame"""
         return self.ui_manager.add_performance_overlay(frame, metrics)
 
     def _record_frame(self, frame):
-        """Record frame to video file"""
         if not hasattr(self, 'video_writer'):
-            # Create recordings directory if it doesn't exist
             os.makedirs('recordings', exist_ok=True)
             
-            # Generate filename with timestamp
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             filename = os.path.join('recordings', f'recording_{timestamp}.mp4')
             
-            # Get frame properties
             height, width = frame.shape[:2]
             fps = self.fps_counter.get_fps()
             if fps < 10:  
                 fps = 30
             
-            # Initialize video writer
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             self.video_writer = cv2.VideoWriter(filename, fourcc, fps, (width, height))
             
-        # Write frame
         self.video_writer.write(frame)
 
 if __name__ == "__main__":

@@ -1,8 +1,3 @@
-"""
-Camera Test Utility
-Tests camera functionality and allows saving test images
-"""
-
 import cv2
 import time
 import sys
@@ -11,7 +6,7 @@ import yaml
 from datetime import datetime
 
 def load_config():
-    """Load configuration from YAML file"""
+    # carrega configurações e keybinds do ficheiro yaml(config/configs.yaml)
     config_path = os.path.join('config', 'configs.yaml')
     try:
         with open(config_path, 'r') as f:
@@ -31,12 +26,12 @@ def load_config():
         }
 
 def main():
-    # Load configuration
+    # carrega as configurações
     config = load_config()
     keybinds = config['keybinds']
     camera_config = config['camera_test']
     
-    # Create save directory if it doesn't exist
+    # criar save directory se ainda nâo existir
     save_dir = camera_config['save_directory']
     os.makedirs(save_dir, exist_ok=True)
     
@@ -59,7 +54,7 @@ def main():
             print("\nError: Could not open camera")
             return False
             
-        # Set camera properties
+        # propriedades da camara
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, camera_config['window_size']['width'])
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_config['window_size']['height'])
         cap.set(cv2.CAP_PROP_FPS, 30)
@@ -76,11 +71,11 @@ def main():
             print("\nError: Failed to grab frame")
             break
             
-        # Show camera properties
+        # mostrar propriedades da camara
         height, width = frame.shape[:2]
         fps = cap.get(cv2.CAP_PROP_FPS)
         
-        # Add info overlay
+        # info overlay
         cv2.putText(frame, f"Resolution: {width}x{height}", (10, 30),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         cv2.putText(frame, f"FPS: {int(fps)}", (10, 60),
@@ -90,7 +85,6 @@ def main():
         
         key = cv2.waitKey(1) & 0xFF
         
-        # Handle key events
         if key == ord(keybinds['quit_test']):
             break
         elif key == ord(keybinds['save_image']):
@@ -103,7 +97,7 @@ def main():
             if not init_camera():
                 break
     
-    # Cleanup
+    # cleanup
     if cap is not None:
         cap.release()
     cv2.destroyAllWindows()

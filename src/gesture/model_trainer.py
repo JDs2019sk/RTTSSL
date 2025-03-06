@@ -1,7 +1,10 @@
 """
-Model Trainer Module
-Provides functionality for training gesture recognition models using
-both image datasets and real-time captured data.
+(ModelTrainer)
+
+Este módulo implementa um sistema de treino para modelos neurais:
+- modos (gestos, letras, palavras, faces)
+- treina em tempo real com webcam
+- treino com conjuntos de dados/imagens (datasets)
 """
 
 import cv2
@@ -33,7 +36,7 @@ class ModelTrainer:
             
             while True:
                 try:
-                    choice = input("\nEnter mode (1-4): ").strip()
+                    choice = input("\nChoose mode (1-4): ").strip()
                     if choice == '1':
                         self.mode = "gesture"
                         break
@@ -53,12 +56,12 @@ class ModelTrainer:
         
         if not training_type:
             print("\nSelect training type:")
-            print("1. Real-time Training (using webcam)")
-            print("2. Image Dataset Training (using saved images)")
+            print("1. Real-Time Training (using webcam)")
+            print("2. Dataset Training (using saved images)")
             
             while True:
                 try:
-                    choice = input("\nEnter training type (1-2): ").strip()
+                    choice = input("\nChoose training type (1-2): ").strip()
                     if choice == '1':
                         self.training_type = "realtime"
                         break
@@ -70,14 +73,12 @@ class ModelTrainer:
                 except ValueError:
                     print("Invalid input. Please enter a number.")
         
-        print(f"\nInitializing {self.mode.upper()} training mode with {self.training_type.upper()} training...")
+        print(f"\nInitializing {self.mode.upper()} mode with {self.training_type.upper()} training...")
         
-        # Load keybinds configuration
         self.config = self._load_config()
         self.keybinds = self.config['keybinds']
         self.training_config = self.config.get('training', {})
         
-        # Initialize MediaPipe based on mode
         if self.mode == "face":
             self.mp_face_detection = mp.solutions.face_detection
             self.mp_drawing = mp.solutions.drawing_utils
@@ -100,17 +101,24 @@ class ModelTrainer:
         self.labels = []
         self.samples_per_label = {}
         
-        # Try to load existing model and labels
         self._load_existing_model()
 
     def _load_config(self):
-        """Load configuration from YAML file"""
+        """
+        Carrega e valida configurações do sistema
+
+        As configurações incluem:
+        - KEYBINDS 
+        - Parâmetros de treino
+        - Configurações de captura
+        - Limiares de confiança
+        """
         config_path = os.path.join('config', 'configs.yaml')
         try:
             with open(config_path, 'r') as f:
                 return yaml.safe_load(f)
         except Exception as e:
-            print(f"Error loading config: {e}")
+            print(f"Error loading configuration: {e}")
             return {
                 'keybinds': {
                     'quit_training': 'q',
@@ -129,7 +137,17 @@ class ModelTrainer:
             }
             
     def _load_existing_model(self):
-        """Load existing model and labels if they exist"""
+        """
+        Carrega modelo e dados de treino existentes
+
+        Processo:
+        1. Carrega modelo treinado (.h5)
+        2. Carrega labels (JSON)
+        3. Carrega dados de treino (NPZ)
+        4. Organiza amostras por labels
+        
+        Cria um modelo novo se ainda não houver nenhum criado
+        """
         try:
             model_path = os.path.join('models', f'{self.mode}_model.h5')
             labels_path = os.path.join('models', f'{self.mode}_labels.json')
@@ -144,43 +162,36 @@ class ModelTrainer:
                     data = np.load(data_path)
                     self.samples_per_label = {label: [] for label in self.labels}
                     
-                    # Convert label indices back to label names
                     for sample, label_idx in zip(data['data'], data['labels']):
                         label = self.labels[label_idx]
                         self.samples_per_label[label].append(sample)
                         
-                    print(f"Loaded existing model with labels: {self.labels}")
+                    print(f"Existing model loaded with labels: {self.labels}")
                     for label, samples in self.samples_per_label.items():
                         print(f"  - {label}: {len(samples)} samples")
         except Exception as e:
-            print(f"Note: No existing model found or error loading it: {e}")
+            print(f"Note: No existing model found or error loading: {e}")
             
-    def _create_model(self, input_shape):
-        """
-        Create a new model for training.
-        
-        Args:
-            input_shape (int): Number of input features
-        """
-        model = keras.Sequential([
-            layers.Dense(128, activation='relu', input_shape=(input_shape,)),
-            layers.Dropout(0.3),
-            layers.Dense(64, activation='relu'),
-            layers.Dropout(0.3),
-            layers.Dense(32, activation='relu'),
-            layers.Dense(len(self.labels), activation='softmax')
-        ])
-        
-        model.compile(
-            optimizer='adam',
-            loss='sparse_categorical_crossentropy',
-            metrics=['accuracy']
-        )
-        
-        return model
-
     def train_from_images(self):
-        """Train the model using images from the dataset directory."""
+        """
+        Treina o modelo com imagens do conjunto de dados
+
+        Processo:
+        1. Verifica os datasets
+        2. Processa as imagens por label
+        3. Extrai as características com o MediaPipe
+        4. Prepara os dados para o treino
+        5. Treina e testa o modelo
+
+        Os datasets devem seguir a seguinte estrutura:
+        datasets/
+          └── [mode]/
+              ├── [label1]/
+              │   ├── imagem1.jpg
+              │   └── imagem2.jpg
+              └── [label2]/
+                  └── ...
+        """
         print(f"\nFound {len(self.labels)} labels: {self.labels}")
         
         features = []
@@ -196,9 +207,9 @@ class ModelTrainer:
         for label in self.labels:
             label_dir = os.path.join(dataset_dir, label)
             if not os.path.exists(label_dir):
-                print(f"\nWarning: Directory for label '{label}' not found at {label_dir}")
+                print(f"\nWarning: Directory for label '{label}' not found in {label_dir}")
                 continue
-                
+            
             print(f"\nProcessing {label}...")
             image_files = [f for f in os.listdir(label_dir) 
                          if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
@@ -217,7 +228,7 @@ class ModelTrainer:
                     
                     if results.multi_hand_landmarks:
                         for hand_landmarks in results.multi_hand_landmarks:
-                            # Extract x, y coordinates from landmarks
+                            # extrai as coordenadas x, y das landmarks
                             coords = []
                             for landmark in hand_landmarks.landmark:
                                 coords.extend([landmark.x, landmark.y])
@@ -230,24 +241,24 @@ class ModelTrainer:
             
             if valid_features:
                 features.extend(valid_features)
-                print(f"Successfully extracted features from {len(valid_features)} images")
+                print(f"Features extracted successfully from {len(valid_features)} images")
             else:
-                print(f"No valid features extracted for label {label}")
+                print(f"No features extracted for label {label}")
         
         if not features:
-            print("\nError: No valid features extracted from any images!")
+            print("\nError: No features extracted from any images!")
             return
             
-        # Convert to numpy arrays
+        # conversor de arrays numpy
         X = np.array(features)
         y = np.array(labels)
         
-        # Split data
+        # divisão dos dados
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42
         )
         
-        # Create and train model
+        # criação e treino do model
         self.model = self._create_model(X_train.shape[1])
         
         print("\nTraining model...")
@@ -259,40 +270,83 @@ class ModelTrainer:
             verbose=1
         )
         
-        # Evaluate model
+        # teste do modelo
         test_loss, test_acc = self.model.evaluate(X_test, y_test, verbose=0)
         print(f"\nTest accuracy: {test_acc:.4f}")
         
-        # Save model and labels
+        # model save point
         self._save_model()
         print("\nModel saved successfully!")
 
+    def _create_model(self, input_shape):
+        """
+        Cria e configura a arquitetura do modelo neural
+
+        Arquitetura:
+        - Camadas densas com dropout
+        - Ativação ReLU e Softmax
+        - Otimizador Adam
+        - Métricas de precisão
+
+        Args:
+            input_shape (int): Número de características de entrada
+
+        Returns:
+            tensorflow.keras.Model: Modelo configurado
+        """
+        model = keras.Sequential([
+            layers.Dense(128, activation='relu', input_shape=(input_shape,)),
+            layers.Dropout(0.3),
+            layers.Dense(64, activation='relu'),
+            layers.Dropout(0.3),
+            layers.Dense(32, activation='relu'),
+            layers.Dense(len(self.labels), activation='softmax')
+        ])
+        
+        model.compile(
+            optimizer='adam',
+            loss='sparse_categorical_crossentropy',
+            metrics=['accuracy']
+        )
+        
+        return model
+
     def train(self):
-        """Start the training process based on selected type"""
+        # inicia o processo de treino com base no tipo de treino selecionado
         if self.training_type == "dataset":
             self.train_from_images()
         else:
             self.train_realtime()
 
     def train_realtime(self):
-        """Train the model using real-time webcam capture"""
+        """
+        Treina o modelo com captura de frames em tempo real
+
+        Teclas de controlo:
+        - 's': Iniciar/parar gravação
+        - 'n': Nova label
+        - 'r': Retreinar gesto/palavra/letra
+        - 't': Iniciar treino
+        - 'q': Sair
+        """
         cap = None
         try:
             cap = cv2.VideoCapture(0)
-            # Set higher resolution
+            # resolução
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
             recording = False
             frame_count = 0
             current_label = None
             
-            print("\nTraining Controls:")
+            # output dos comandos 
+            print("\nTraining controls:")
             print(f"- Press '{self.keybinds['quit_training']}' to quit")
             print(f"- Press '{self.keybinds['start_stop_recording']}' to start/stop recording samples")
-            print(f"- Press '{self.keybinds['new_label']}' to set/create a new label")
+            print(f"- Press '{self.keybinds['new_label']}' to create a new label")
             print(f"- Press '{self.keybinds['retrain_label']}' to retrain a specific label from scratch")
-            print(f"- Press '{self.keybinds['info_display']}' to show training info")
-            print(f"- Press '{self.keybinds['start_training']}' to train the model")
+            print(f"- Press '{self.keybinds['info_display']}' to display training information")
+            print(f"- Press '{self.keybinds['start_training']}' to start training the model")
             print("\n")
             
             print(f"Current mode: {self.mode.upper()}")
@@ -311,7 +365,7 @@ class ModelTrainer:
                     frame = cv2.flip(frame, 1)
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     
-                    # Process frame based on mode
+                    # processa frame com base no modo de treino selecionado
                     if self.mode == "face":
                         results = self.face_detection.process(frame_rgb)
                         if results.detections:
@@ -324,7 +378,7 @@ class ModelTrainer:
                                 self.mp_drawing.draw_landmarks(
                                     frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
                     
-                    # Status display
+                    # infos do treino
                     status = f"Mode: {self.mode.upper()}"
                     if current_label:
                         status += f" | Label: {current_label}"
@@ -338,7 +392,6 @@ class ModelTrainer:
                                0.7, (0, 255, 0), 2)
                     
                     if recording and current_label:
-                        # Extract features based on mode
                         features = self._extract_landmarks(results, frame if self.mode == "face" else None)
                         if features is not None:
                             if current_label not in self.samples_per_label:
@@ -346,13 +399,12 @@ class ModelTrainer:
                             self.samples_per_label[current_label].append(features)
                             frame_count += 1
                     
-                    cv2.namedWindow('Hand Training')
+                    cv2.namedWindow('Training')
                     window_size = self.training_config.get('window_size', {'width': 1280, 'height': 720})
-                    cv2.resizeWindow('Hand Training', window_size['width'], window_size['height'])
-                    cv2.imshow('Hand Training', frame)
+                    cv2.resizeWindow('Training', window_size['width'], window_size['height'])
+                    cv2.imshow('Training', frame)
                     
-                    # Check if window is still open
-                    if cv2.getWindowProperty('Hand Training', cv2.WND_PROP_VISIBLE) < 1:
+                    if cv2.getWindowProperty('Training', cv2.WND_PROP_VISIBLE) < 1:
                         break
                     
                     key = cv2.waitKey(1) & 0xFF
@@ -360,20 +412,20 @@ class ModelTrainer:
                         break
                     elif key == ord(self.keybinds['start_stop_recording']):
                         if current_label:
-                            # Check if maximum number of samples has been reached
+                            # verifica se o número máximo de amostras foi alcançado
                             if current_label in self.samples_per_label and len(self.samples_per_label[current_label]) >= self.training_config.get('max_samples_per_label', 1000):
                                 print("\n[X] Maximum of 1000 samples reached for this label")
                                 continue
                                 
                             recording = not recording
                             if not recording:
-                                print(f"\n[+] Recorded {frame_count} frames for {current_label}")
+                                print(f"\n[+] Recorded {frame_count} samples for {current_label}")
                                 frame_count = 0
                         else:
-                            print("\n[X] Please set a label first using 'n'")
+                            print("\n[X] Please define a label first using 'n'")
                     elif key == ord(self.keybinds['new_label']):
-                        # Destroy window before input to prevent focus issues
-                        cv2.destroyWindow('Hand Training')
+                        # fecha a janela antes da entrada para evitar problemas de foco
+                        cv2.destroyWindow('Training')
                         
                         prompt = "Enter "
                         if self.mode == "gesture":
@@ -386,10 +438,10 @@ class ModelTrainer:
                             prompt += "word"
                         label = input(f"\n{prompt}: ").strip()
                         
-                        # Recreate window after input
-                        cv2.namedWindow('Hand Training')
+                        # reabre a janela após a entrada
+                        cv2.namedWindow('Training')
                         window_size = self.training_config.get('window_size', {'width': 1280, 'height': 720})
-                        cv2.resizeWindow('Hand Training', window_size['width'], window_size['height'])
+                        cv2.resizeWindow('Training', window_size['width'], window_size['height'])
                         
                         if label:
                             current_label = label
@@ -397,17 +449,17 @@ class ModelTrainer:
                                 self.labels.append(label)
                                 self.samples_per_label[label] = []
                                 print(f"[+] Added new label: {label}")
-                            print(f"[+] Set current label to: {label}")
+                            print(f"[+] Current label set to: {label}")
                             print(f"[+] Current labels: {self.labels}")
                     elif key == ord(self.keybinds['retrain_label']):
                         if not self.labels:
-                            print("\n[X] No labels available to retrain")
+                            print("\n[X] No labels available for retraining")
                             continue
                         
-                        # Destroy window before input
-                        cv2.destroyWindow('Hand Training')
+                        # fecha a janela antes da entrada
+                        cv2.destroyWindow('Training')
                         
-                        print("\nAvailable labels to retrain:")
+                        print("\nAvailable labels for retraining:")
                         for i, label in enumerate(self.labels):
                             count = len(self.samples_per_label.get(label, []))
                             print(f"{i + 1}. {label} ({count} samples)")
@@ -415,15 +467,15 @@ class ModelTrainer:
                         try:
                             choice = input("\nEnter the number of the label to retrain (or 0 to cancel): ")
                             
-                            # Recreate window after input
-                            cv2.namedWindow('Hand Training')
+                            # reabre a janela após entrada
+                            cv2.namedWindow('Training')
                             window_size = self.training_config.get('window_size', {'width': 1280, 'height': 720})
-                            cv2.resizeWindow('Hand Training', window_size['width'], window_size['height'])
+                            cv2.resizeWindow('Training', window_size['width'], window_size['height'])
                             
                             if choice.isdigit():
                                 choice = int(choice)
                                 if choice == 0:
-                                    print("Cancelled retraining")
+                                    print("Retraining cancelled")
                                     continue
                                 if 1 <= choice <= len(self.labels):
                                     label = self.labels[choice - 1]
@@ -439,24 +491,24 @@ class ModelTrainer:
                             else:
                                 print("[X] Please enter a number")
                         except Exception as e:
-                            print(f"[X] Error during retrain: {e}")
+                            print(f"[X] Error during retraining: {e}")
                     elif key == ord(self.keybinds['info_display']):
-                        print("\nTraining Information:")
+                        print("\nTraining information:")
                         print(f"Current mode: {self.mode.upper()}")
-                        print("Labels and samples:")
+                        print("Current labels and samples:")
                         for label in self.labels:
                             count = len(self.samples_per_label.get(label, []))
                             print(f"  - {label}: {count} samples")
                     elif key == ord(self.keybinds['start_training']):
                         total_samples = sum(len(samples) for samples in self.samples_per_label.values())
                         if total_samples < 100:
-                            print("[X] Not enough samples. Please record at least 100 samples in total.")
+                            print("[X] Insufficient number of samples. Please record at least 100 samples in total.")
                             continue
                         
-                        # Check if each label has at least some samples
+                        # verifica se cada label tem um numero minimo de amostras
                         min_samples = min(len(samples) for samples in self.samples_per_label.values())
                         if min_samples < 20:
-                            print("[X] Each label needs at least 20 samples.")
+                            print("[X] Each label must have at least 20 samples.")
                             print("\nSamples per label:")
                             for label in self.labels:
                                 count = len(self.samples_per_label[label])
@@ -490,7 +542,7 @@ class ModelTrainer:
                 cap.release()
             cv2.destroyAllWindows()
             
-            # Save current progress if there are samples
+            # guarda o progresso atual se houver amostras
             if any(len(samples) > 0 for samples in self.samples_per_label.values()):
                 try:
                     print("[*] Saving current progress...")
@@ -500,24 +552,39 @@ class ModelTrainer:
                     print(f"[X] Error saving progress: {e}")
         
     def _extract_landmarks(self, detection_result, frame=None):
-        """Extract and normalize landmarks based on mode"""
+        """
+        Extrai e normaliza landmarks com base no modo
+
+        Processo:
+        1. Extrai pontos de referência
+        2. Normaliza coordenadas
+        3. Aplica transformações necessárias
+
+        Args:
+            detection_result: Resultado da detecção
+            frame: Frame da webcam/imagem (opcional)
+
+        Returns:
+            list: Vetor de características normalizado
+            bool: Sucesso da extração
+        """
         try:
             if self.mode == "face":
                 if not detection_result.detections:
                     return None
                     
-                # Get face detection
+                # deteção da face
                 detection = detection_result.detections[0]
                 bbox = detection.location_data.relative_bounding_box
                 
-                # Convert relative coordinates to absolute
+                # converte coordenadas relativas para absolutas
                 height, width = frame.shape[:2]
                 x = int(bbox.xmin * width)
                 y = int(bbox.ymin * height)
                 w = int(bbox.width * width)
                 h = int(bbox.height * height)
                 
-                # Extract face region and resize to standard size
+                # extrai região da face e redimensiona para tamanho padrão
                 face_img = frame[y:y+h, x:x+w]
                 if face_img.size == 0:
                     return None
@@ -525,37 +592,36 @@ class ModelTrainer:
                 face_img = cv2.resize(face_img, (128, 128))
                 face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
                 
-                # Normalize pixel values
+                # normaliza os valores dos pixeis
                 face_features = face_img.flatten() / 255.0
                 return face_features
                 
             else:
-                # Original hand landmark extraction
                 if not detection_result.multi_hand_landmarks:
                     return None
                     
                 hand_landmarks = detection_result.multi_hand_landmarks[0]
                 
-                # Get all coordinates first
+                # obtem todas as coordenadas primeiro
                 x_coords = [lm.x for lm in hand_landmarks.landmark]
                 y_coords = [lm.y for lm in hand_landmarks.landmark]
                 z_coords = [lm.z for lm in hand_landmarks.landmark]
                 
-                # Calculate bounding box
+                # calculo da caixa delimitadora
                 min_x, max_x = min(x_coords), max(x_coords)
                 min_y, max_y = min(y_coords), max(y_coords)
                 min_z, max_z = min(z_coords), max(z_coords)
                 
-                # Calculate ranges with epsilon to prevent division by zero
+                # calculo dos intervalos com epsilon para evitar divisão por zero
                 eps = 1e-6
                 x_range = max(max_x - min_x, eps)
                 y_range = max(max_y - min_y, eps)
                 z_range = max(max_z - min_z, eps)
                 
-                # Normalize coordinates relative to bounding box
+                # normalização das coordenadas em relação à caixa delimitadora
                 landmarks = []
                 for landmark in hand_landmarks.landmark:
-                    # Normalize each coordinate to range [0, 1]
+                    # normalização de cada coordenada para o intervalo [0, 1]
                     norm_x = (landmark.x - min_x) / x_range
                     norm_y = (landmark.y - min_y) / y_range
                     norm_z = (landmark.z - min_z) / z_range
@@ -569,9 +635,8 @@ class ModelTrainer:
             raise
         
     def _train_model(self):
-        """Train the model"""
         try:
-            # Prepare training data
+            # prepara os dados do treino
             X = []
             y = []
             for label_idx, label in enumerate(self.labels):
@@ -582,44 +647,41 @@ class ModelTrainer:
             X = np.array(X)
             y = np.array(y)
             
-            # Normalize training data
+            # normaliza os dados do treino
             mean = X.mean(axis=0)
             std = X.std(axis=0)
             X = (X - mean) / std
             
-            # Always use multiclass classification
+            # classificação multiclasse (sempre)
             print(f"Training multiclass model with labels: {self.labels}")
             output_units = len(self.labels)
             
-            # Split data
             X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.2, random_state=42, stratify=y)  # Added stratify
+                X, y, test_size=0.2, random_state=42, stratify=y)  # stratify
             
-            # Create and compile model with improved architecture
+            # criação e compilação do modelo com arquitetura melhorada
             self.model = keras.Sequential([
-                # Input normalization layer
                 layers.Lambda(lambda x: (x - mean) / std, input_shape=(X.shape[1],)),
                 
-                # First block
+                # primeiro bloco
                 layers.Dense(256, activation='relu'),
                 layers.BatchNormalization(),
                 layers.Dropout(0.3),
                 
-                # Second block
+                # segundo bloco
                 layers.Dense(128, activation='relu'),
                 layers.BatchNormalization(),
                 layers.Dropout(0.3),
                 
-                # Third block
+                # terceiro bloco
                 layers.Dense(64, activation='relu'),
                 layers.BatchNormalization(),
                 layers.Dropout(0.2),
                 
-                # Output layer
+                # camada de saída
                 layers.Dense(output_units, activation='softmax')
             ])
             
-            # Compile with improved optimizer settings
             self.model.compile(
                 optimizer=keras.optimizers.Adam(
                     learning_rate=0.001,
@@ -631,24 +693,22 @@ class ModelTrainer:
                 metrics=['accuracy']
             )
             
-            # Add early stopping callback with better parameters
+            # callback antecipado com parâmetros melhorados
             early_stopping = keras.callbacks.EarlyStopping(
-                monitor='val_accuracy',  # Changed to monitor accuracy
+                monitor='val_accuracy',  # alterado para verificar a precisão
                 patience=30,
                 restore_best_weights=True,
-                min_delta=0.01  # 1% improvement threshold
+                min_delta=0.01  # limitador de melhoria de 1%
             )
             
-            # Add learning rate reduction with better parameters
             reduce_lr = keras.callbacks.ReduceLROnPlateau(
-                monitor='val_accuracy',  # Changed to monitor accuracy
+                monitor='val_accuracy', 
                 factor=0.5,
                 patience=10,
                 min_lr=0.00001,
                 verbose=1
             )
             
-            # Train with improved parameters
             history = self.model.fit(
                 X_train, y_train,
                 epochs=150,
@@ -658,11 +718,10 @@ class ModelTrainer:
                 verbose=1
             )
             
-            # Evaluate
+            # avaliação/verificação
             test_loss, test_acc = self.model.evaluate(X_test, y_test, verbose=0)
             print(f'\nTest accuracy: {test_acc:.4f}')
             
-            # Save model and data
             self._save_model()
             self._save_history(history.history)
             
@@ -671,23 +730,32 @@ class ModelTrainer:
             raise
         
     def _save_model(self):
-        """Save model, labels, and training data"""
+        """
+        Salva o modelo e dados associados
+
+        Ficheiros salvos:
+        1. Modelo treinado (.h5)
+        2. Labels (JSON)
+        3. Dados de treino (NPZ)
+        4. Métricas de desempenho
+        5. Configurações utilizadas
+        """
         try:
-            # Create models directory if it doesn't exist
+            # cria o diretório de modelos se não existir
             os.makedirs('models', exist_ok=True)
             
-            # Save model with mode prefix
+            # guarda o modelo com o prefixo do modo de treino
             model_path = os.path.join('models', f'{self.mode}_model.h5')
             self.model.save(model_path)
             print(f"Model saved to: {model_path}")
             
-            # Save labels with mode prefix
+            # guarda as labels com prefixo do modo de treino
             labels_path = os.path.join('models', f'{self.mode}_labels.json')
             with open(labels_path, 'w') as f:
                 json.dump(self.labels, f)
             print(f"Labels saved to: {labels_path}")
             
-            # Save training data with mode prefix
+            # guarda os dados do treino com prefixo do modo de treino
             data_path = os.path.join('models', f'{self.mode}_training_data.npz')
             np.savez(data_path, 
                      data=np.array([sample for samples in self.samples_per_label.values() for sample in samples]), 
@@ -699,7 +767,12 @@ class ModelTrainer:
             raise
                 
     def _save_history(self, history):
-        """Save training history"""
+        """
+        Salva histórico de treino
+
+        Ficheiro salvo:
+        1. Histórico de treino (JSON)
+        """
         try:
             os.makedirs('logs', exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -711,7 +784,7 @@ class ModelTrainer:
             
         except Exception as e:
             print(f"Error saving history: {str(e)}")
-            # Don't raise here as this is not critical
+            # não levanta exceção aqui por não ser crítico
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='RTTSSL Model Trainer')
@@ -722,7 +795,6 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    # Convert command line args to trainer parameters
     mode = args.mode
     training_type = args.type
     
