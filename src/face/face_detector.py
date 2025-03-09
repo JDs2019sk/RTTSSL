@@ -29,11 +29,12 @@ class FaceDetector:
         self.label_names = {}
         self.next_label = 0
         self.mode = "mesh"
-        self.model_file = os.path.join('models', 'face_recognizer.yml')
+        self.model_file = os.path.join('models', 'face_model.h5')
         self.labels_file = os.path.join('models', 'face_labels.json')
         self.training_data_file = os.path.join('models', 'face_training_data.npz')
         
         os.makedirs('models', exist_ok=True)
+        os.makedirs('faces', exist_ok=True)
         
         self.load_recognizer()
         
@@ -54,12 +55,17 @@ class FaceDetector:
             
             if os.path.exists(self.labels_file):
                 with open(self.labels_file, 'r') as f:
-                    names_list = json.load(f)
-                    self.label_names = {str(i): name for i, name in enumerate(names_list)}
+                    data = json.load(f)
+                    if isinstance(data, dict):
+                        self.label_names = data
+                    elif isinstance(data, list):
+                        self.label_names = {str(i): name for i, name in enumerate(data)}
+                    self.next_label = max([int(label) for label in self.label_names.keys()]) + 1 if self.label_names else 0
                 print(f"Loaded {len(self.label_names)} face labels: {self.label_names}")
             else:
-                print("No face tag found")
+                print("No face labels found")
                 self.label_names = {}
+                self.next_label = 0
             
             if os.path.exists(self.training_data_file):
                 data = np.load(self.training_data_file)
@@ -89,8 +95,12 @@ class FaceDetector:
                     print(f"Final data format: {self.known_faces.shape}")
                     print(f"Final label format: {self.face_labels.shape}")
                     
-                    self.face_recognizer.train(self.known_faces, self.face_labels)
-                    print("Model successfully trained!")
+                    if len(self.known_faces) > 0:
+                        self.face_recognizer.train(self.known_faces, self.face_labels)
+                        print("Model successfully trained!")
+                    else:
+                        print("No faces to train with")
+                        self.face_recognizer.train([np.zeros((100, 100), dtype=np.uint8)], np.array([0]))
                 else:
                     print("No facial data found in the training file")
                     self.known_faces = []
@@ -108,6 +118,7 @@ class FaceDetector:
             self.label_names = {}
             self.known_faces = []
             self.face_labels = []
+            self.next_label = 0
             self.face_recognizer = cv2.face.LBPHFaceRecognizer_create()
             self.face_recognizer.train([np.zeros((100, 100), dtype=np.uint8)], np.array([0]))
             
@@ -125,7 +136,7 @@ class FaceDetector:
         try:
             with open(self.labels_file, 'w') as f:
                 json.dump(self.label_names, f, indent=4)
-            print(f"Saved {len(self.label_names)} face tags")
+            print(f"Saved {len(self.label_names)} face labels: {self.label_names}")
             
             if self.known_faces:
                 np.savez(self.training_data_file, 
@@ -134,69 +145,48 @@ class FaceDetector:
                 print(f"Saved {len(self.known_faces)} facial samples")
             
             self.face_recognizer.write(self.model_file)
-            print("Facial recognition model saved")
+            print("Face recognition model saved")
             
         except Exception as e:
             print(f"Error saving recognizer: {e}")
             
     def add_face(self, frame, name):
-        """
-        Adiciona uma nova face ao sistema de reconhecimento
-
-        Processo:
-        1. Remove a face na imagem com o Haar Cascade
-        2. Pré-processa a face (escala e conversão para cinza)
-        3. Adiciona aos dados de treino
-        4. Atualiza o modelo
-        5. Salva uma cópia da face para referência
-
-        Args:
-            frame: Imagem contendo a face
-            name: Nome da pessoa
-
-        Returns:
-            bool: True se a face foi adicionada com sucesso
-        """
-        try:
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            
-            faces = self.face_cascade.detectMultiScale(
-                gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-            
-            if len(faces) == 0:
-                print("No face detected in the image")
-                return False
-                
-            if len(faces) > 1:
-                print("Multiple faces detected. Make sure only one face is visible.")
-                return False
-                
-            x, y, w, h = faces[0]
-            face_roi = gray[y:y+h, x:x+w]
-            
-            face_roi = cv2.resize(face_roi, (100, 100))
-            
-            label = str(self.next_label)
-            self.known_faces.append(face_roi)
-            self.face_labels.append(int(label))
-            self.label_names[label] = name
-            self.next_label += 1
-            
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{name}_{timestamp}.jpg"
-            filepath = os.path.join('faces', filename)
-            cv2.imwrite(filepath, face_roi)
-            
-            self.face_recognizer.train(self.known_faces, np.array(self.face_labels))
-            self.save_recognizer()
-            
-            print(f"New face added: {name}")
-            return True
-            
-        except Exception as e:
-            print(f"Error adding face: {e}")
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        
+        if len(faces) != 1:
+            print(f"Expected 1 face, found {len(faces)}")
             return False
             
+        x, y, w, h = faces[0]
+        face_roi = gray[y:y+h, x:x+w]
+        face_roi = cv2.resize(face_roi, (100, 100))
+        
+        os.makedirs('faces', exist_ok=True)
+        
+        samples = []
+        for i in range(10):
+            noise = np.random.normal(0, 2, face_roi.shape).astype(np.uint8)
+            augmented = cv2.add(face_roi, noise)
+            augmented = cv2.equalizeHist(augmented)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + f"_{i}"
+            filename = f"{name}_{timestamp}.jpg"
+            filepath = os.path.join('faces', filename)
+            cv2.imwrite(filepath, augmented)
+            
+            samples.append(augmented)
+            self.known_faces.append(augmented)
+            self.face_labels.append(self.next_label)
+            
+        self.label_names[str(self.next_label)] = name
+        self.next_label += 1
+        
+        self.face_recognizer.train(np.array(self.known_faces), np.array(self.face_labels))
+        self.save_recognizer()
+        
+        return True
+
     def process_frame(self, frame):
         """
         Processa um frame de acordo com o modo atual
@@ -219,6 +209,49 @@ class FaceDetector:
         else:
             return self._process_recognition(frame)
             
+    def _process_recognition(self, frame):
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.equalizeHist(gray)
+        
+        faces = self.face_cascade.detectMultiScale(
+            gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        
+        for (x, y, w, h) in faces:
+            face_roi = gray[y:y+h, x:x+w]
+            face_roi = cv2.resize(face_roi, (100, 100))
+            
+            try:
+                label, distance = self.face_recognizer.predict(face_roi)
+                confidence = max(0, min(100, 100 * (1 - distance/100)))
+                
+                label_str = str(label)
+                name = self.label_names.get(label_str)
+                
+                if confidence < 35 or not name:
+                    name = ""
+                else:
+                    name = f"{name}"
+                    print(f"Face recognized: {name} ({confidence:.1f}%)")
+                
+                color = (0, 255, 0) if confidence >= 35 else (0, 165, 255)
+                cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
+                
+                if name:
+                    text_size = cv2.getTextSize(name, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
+                    cv2.rectangle(frame, 
+                                (x - 2, y - text_size[1] - 10),
+                                (x + text_size[0] + 2, y),
+                                (0, 0, 0), -1)
+                    
+                    cv2.putText(frame, name,
+                               (x, y - 6),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+                           
+            except Exception as e:
+                print(f"Error: {e}")
+        
+        return frame
+
     def _process_mesh(self, frame):
         """
         Processa o frame usando a deteção de mesh facial
@@ -283,58 +316,7 @@ class FaceDetector:
                     cv2.circle(frame, tuple(center), 2, (0, 69, 255), -1)
         
         return frame
-        
-    def _process_recognition(self, frame):
-        """
-        Processa o frame com reconhecimento facial
-        Args:
-            frame: Frame a processar
 
-        Returns:
-            numpy.ndarray: Frame com faces reconhecidas
-        """
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        
-        faces = self.face_cascade.detectMultiScale(
-            gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-        
-        for (x, y, w, h) in faces:
-            face_roi = gray[y:y+h, x:x+w]
-            face_roi = cv2.resize(face_roi, (100, 100))
-            
-            try:
-                label, distance = self.face_recognizer.predict(face_roi)
-                confidence = max(0, min(100, 100 * (1 - distance/100)))
-                
-                label_str = str(label)
-                name = self.label_names.get(label_str, "Unknown")
-                
-                if confidence < 30:
-                    name = "Unknown"
-                    print(f"Face detected but confidence very low: {confidence:.1f}% (distance: {distance:.1f})")
-                else:
-                    name = f"{name} ({confidence:.1f}%)"
-                    print(f"Face recognized: {name} (distance: {distance:.1f})")
-                
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                
-                text_size = cv2.getTextSize(name, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
-                cv2.rectangle(frame, 
-                            (x - 2, y - text_size[1] - 10),
-                            (x + text_size[0] + 2, y),
-                            (0, 0, 0), -1)
-                
-                cv2.putText(frame, name,
-                           (x, y - 6),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-                           
-            except Exception as e:
-                print(f"Facial recognition error: {e}")
-                print(f"Label: {label if 'label' in locals() else 'unknown'}")
-                print(f"Label names: {self.label_names}")
-        
-        return frame
-        
     def _draw_face_mesh(self, frame, landmarks):
         """
         Desenha os pontos de referência da mesh facial no frame
@@ -372,11 +354,6 @@ class FaceDetector:
             self.mode = "iris"
         elif self.mode == "iris":
             self.mode = "recognition"
-            if os.path.exists(self.model_file):
-                try:
-                    self.face_recognizer.read(self.model_file)
-                    print("Facial recognition model loaded")
-                except Exception as e:
-                    print(f"Error loading face model: {e}")
+            self.load_recognizer()  # Reload recognizer when switching to recognition mode
         else:
             self.mode = "mesh"

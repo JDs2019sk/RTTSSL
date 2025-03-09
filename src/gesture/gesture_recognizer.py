@@ -91,6 +91,13 @@ class GestureRecognizer:
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(frame_rgb)
         
+        title = {
+            "gesture": "Gestos Disponiveis",
+            "letter": "Letras Disponiveis",
+            "word": "Palavras Disponiveis"
+        }.get(self.mode, "Labels Disponiveis")
+        self._draw_labels_overlay(frame, title, self.labels)
+        
         translation = None
         
         if results.multi_hand_landmarks:
@@ -222,16 +229,34 @@ class GestureRecognizer:
             radius = max(1, min(5, int(5 * (1 + landmark.z))))
             cv2.circle(frame, (x, y), radius, (0, 255, 0), -1)
             
+    def _draw_labels_overlay(self, frame, title, labels):
+        if labels:
+            overlay = frame.copy()
+            y_pos = 30
+            height = 25 + (len(labels) * 25)
+            cv2.rectangle(overlay, (5, 10), (200, y_pos + height), (0, 0, 0), -1)
+            cv2.addWeighted(overlay, 0.5, frame, 0.5, 0, frame)
+            
+            cv2.putText(frame, title, (10, y_pos), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+            for label in labels:
+                y_pos += 25
+                cv2.putText(frame, f"- {label}", (20, y_pos),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        else:
+            overlay = frame.copy()
+            cv2.rectangle(overlay, (5, 10), (200, 50), (0, 0, 0), -1)
+            cv2.addWeighted(overlay, 0.5, frame, 0.5, 0, frame)
+            
+            cv2.putText(frame, f"Nenhum {title.lower()}", (10, 30),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
     def set_mode(self, mode):
         """
         Altera o modo de reconhecimento do sistema
 
         Args:
             mode: Novo modo ('gesture', 'letter' ou 'word')
-            
-        Efeitos:
-            - Recarrega o modelo apropriado
-            - Limpa o histórico de previsões
         """
         if mode in ["gesture", "letter", "word"]:
             self.mode = mode

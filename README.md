@@ -113,7 +113,6 @@ RTTSSL/
 │   └── script.py         # arduino function
 ├── config/               # Configuration files for the project
 │   └── configs.yaml      # Keybinds/configs file
-├── data/                 # Raw and processed data storage
 ├── datasets/             # Training and testing datasets
 │   ├── gesture/          # Images to train gestures
 │   ├── letter/           # Images to train letters
