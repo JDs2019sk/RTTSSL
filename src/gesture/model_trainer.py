@@ -500,30 +500,24 @@ class ModelTrainer:
                             count = len(self.samples_per_label.get(label, []))
                             print(f"  - {label}: {count} samples")
                     elif key == ord(self.keybinds['start_training']):
-                        total_samples = sum(len(samples) for samples in self.samples_per_label.values())
-                        if total_samples < 100:
-                            print("[X] Insufficient number of samples. Please record at least 100 samples in total.")
+                        if not all(len(samples) >= 1 for samples in self.samples_per_label.values() if samples):
+                            print("\n[X] Not enough samples for some labels. Need at least 20 samples per label.")
                             continue
                         
-                        # verifica se cada label tem um numero minimo de amostras
-                        min_samples = min(len(samples) for samples in self.samples_per_label.values())
-                        if min_samples < 20:
-                            print("[X] Each label must have at least 20 samples.")
-                            print("\nSamples per label:")
-                            for label in self.labels:
-                                count = len(self.samples_per_label[label])
-                                print(f"  - {label}: {count} samples")
-                            continue
-                        
-                        print(f"\n[*] Training {self.mode} model...")
-                        print(f"[*] Labels: {self.labels}")
-                        print("\nSamples per label:")
-                        for label in self.labels:
-                            count = len(self.samples_per_label[label])
-                            print(f"  - {label}: {count} samples")
-                        
-                        self._train_model()
-                        print("[+] Training completed!")
+                        if self.mode == "face":
+                            # Para o modo face, apenas guardamos os dados sem treinar um modelo TensorFlow
+                            # O FaceDetector usará estes dados para treinar o reconhecedor LBPH
+                            print("\n[+] Saving face data and labels...")
+                            success = self._save_model()
+                            if success:
+                                print("[+] Face data saved successfully. Use the face recognition mode to test.")
+                                print("[!] Note: To activate face recognition, press 'F' and then 'E' twice in the main application")
+                            else:
+                                print("[X] Error saving face data")
+                        else:
+                            # Para outros modos, treina normalmente o modelo TensorFlow
+                            if self._train_model():
+                                self._save_model()
                 
                 except KeyboardInterrupt:
                     print("\n[!] Training interrupted by user")
@@ -589,12 +583,15 @@ class ModelTrainer:
                 if face_img.size == 0:
                     return None
                     
-                face_img = cv2.resize(face_img, (128, 128))
+                face_img = cv2.resize(face_img, (100, 100))  # Mesmo tamanho usado no FaceDetector (100x100)
                 face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
                 
-                # normaliza os valores dos pixeis
-                face_features = face_img.flatten() / 255.0
-                return face_features
+                # Aplicar equalização de histograma como no FaceDetector
+                face_img = cv2.equalizeHist(face_img)
+                
+                # Guarda a imagem diretamente, sem normalizar
+                # O FaceDetector espera imagens sem normalização
+                return face_img.flatten()
                 
             else:
                 if not detection_result.multi_hand_landmarks:
@@ -731,40 +728,69 @@ class ModelTrainer:
         
     def _save_model(self):
         """
-        Salva o modelo e dados associados
+        Guarda o modelo e dados relacionados
 
-        Ficheiros salvos:
-        1. Modelo treinado (.h5)
-        2. Labels (JSON)
-        3. Dados de treino (NPZ)
-        4. Métricas de desempenho
-        5. Configurações utilizadas
+        Ficheiros guardados:
+        - Modelo treinado (.h5)
+        - Labels (JSON)
+        - Dados de normalização e treino (NPZ)
         """
         try:
-            # cria o diretório de modelos se não existir
             os.makedirs('models', exist_ok=True)
             
-            # guarda o modelo com o prefixo do modo de treino
-            model_path = os.path.join('models', f'{self.mode}_model.h5')
-            self.model.save(model_path)
-            print(f"Model saved to: {model_path}")
+            if self.mode == "face":
+                # Para faces, guardamos no formato compatível com FaceDetector
+                face_data = []
+                face_labels = []
+                label_names = {}
+                
+                for idx, label in enumerate(self.labels):
+                    label_names[str(idx)] = label
+                    samples = self.samples_per_label.get(label, [])
+                    for sample in samples:
+                        # Converte o array 1D de volta para imagem 100x100
+                        face_img = np.reshape(sample, (100, 100))
+                        face_data.append(face_img)
+                        face_labels.append(idx)
+                
+                # Guarda as labels num formato compatível com o FaceDetector
+                with open(os.path.join('models', 'face_labels.json'), 'w') as f:
+                    json.dump(label_names, f, indent=4)
+                
+                # Guarda os dados de treino
+                if face_data:
+                    np.savez(os.path.join('models', 'face_training_data.npz'),
+                            data=np.array(face_data),
+                            labels=np.array(face_labels))
+                
+                # Nota: Não guardamos um modelo TensorFlow para faces
+                # O FaceDetector usa OpenCV LBPH Recognizer
+                print(f"[+] Saved {len(face_data)} face samples and {len(label_names)} labels")
+            else:
+                # Para gestos/letras/palavras, mantém o comportamento original
+                model_file = os.path.join('models', f'{self.mode}_model.h5')
+                self.model.save(model_file)
+                
+                labels_file = os.path.join('models', f'{self.mode}_labels.json')
+                with open(labels_file, 'w') as f:
+                    json.dump(self.labels, f)
+                
+                # Guarda também os dados de treino para estatísticas e normalização
+                all_data = np.vstack([np.array(self.samples_per_label[label]) for label in self.labels if self.samples_per_label[label]])
+                all_labels = np.hstack([[i] * len(self.samples_per_label[label]) for i, label in enumerate(self.labels) if self.samples_per_label[label]])
+                
+                np.savez(os.path.join('models', f'{self.mode}_training_data.npz'),
+                        data=all_data,
+                        labels=all_labels,
+                        label_names=np.array(self.labels))
+                
+                print(f"[+] Model saved to {model_file}")
+                print(f"[+] Labels saved to {labels_file}")
             
-            # guarda as labels com prefixo do modo de treino
-            labels_path = os.path.join('models', f'{self.mode}_labels.json')
-            with open(labels_path, 'w') as f:
-                json.dump(self.labels, f)
-            print(f"Labels saved to: {labels_path}")
-            
-            # guarda os dados do treino com prefixo do modo de treino
-            data_path = os.path.join('models', f'{self.mode}_training_data.npz')
-            np.savez(data_path, 
-                     data=np.array([sample for samples in self.samples_per_label.values() for sample in samples]), 
-                     labels=np.array([label_idx for label_idx, samples in enumerate(self.samples_per_label.values()) for _ in samples]))
-            print(f"Training data saved to: {data_path}")
-            
+            return True
         except Exception as e:
-            print(f"Error saving model: {str(e)}")
-            raise
+            print(f"[X] Error saving model: {e}")
+            return False
                 
     def _save_history(self, history):
         """

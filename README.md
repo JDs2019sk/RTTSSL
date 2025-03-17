@@ -125,7 +125,7 @@ RTTSSL/
 ├── src/                  # Source code directory
 │   ├── face/             # Face detection modules
 │   ├── gesture/          # Gesture recognition modules
-│   ├── mouse/            # mouse control modules
+│   ├── mouse/            # Mouse control modules
 │   └── utils/            # Utility functions
 ├── test_images/          # Images taken in camera test
 ├── main.py               # Main application entry point
