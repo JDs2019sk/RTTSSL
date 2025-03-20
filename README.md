@@ -134,7 +134,7 @@ RTTSSL/
 └── gpu_test.py           # GPU test for performance tracking (NVIDIA only)
 ```
 
-#### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/ faces/`]
+#### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/ faces/ test_images`]
 
 ## 🐋 Docker Support
 
@@ -153,17 +153,21 @@ You can run RTTSSL inside a Docker container. Note that camera access and GPU su
 docker build -t rttssl .
 ```
 
-2. Run with CPU only:
+2. Run with CPU only (with data persistence):
 
 ```bash
 docker run -it --rm \
   --device=/dev/video0:/dev/video0 \
   -e DISPLAY=$DISPLAY \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v "$(pwd)/models:/app/models" \
+  -v "$(pwd)/datasets:/app/datasets" \
+  -v "$(pwd)/recordings:/app/recordings" \
+  -v "$(pwd)/logs:/app/logs" \
   rttssl
 ```
 
-3. Run with NVIDIA GPU support:
+3. Run with NVIDIA GPU support (with data persistence):
 
 ```bash
 docker run -it --rm \
@@ -171,6 +175,10 @@ docker run -it --rm \
   --device=/dev/video0:/dev/video0 \
   -e DISPLAY=$DISPLAY \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v "$(pwd)/models:/app/models" \
+  -v "$(pwd)/datasets:/app/datasets" \
+  -v "$(pwd)/recordings:/app/recordings" \
+  -v "$(pwd)/logs:/app/logs" \
   rttssl
 ```
 

@@ -43,6 +43,7 @@ recordings/
 data/
 prints/
 faces/
+test_images/
 
 # System
 .DS_Store
