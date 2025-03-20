@@ -138,8 +138,4 @@ RTTSSL/
 
 #### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/ faces/ test_images`]
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 👍 Created by Joel Dias (PAP 24/25)
