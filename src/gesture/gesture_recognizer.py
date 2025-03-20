@@ -107,9 +107,9 @@ class GestureRecognizer:
         results = self.hands.process(frame_rgb)
         
         title = {
-            "gesture": "Gestos Disponíveis",
-            "letter": "Letras Disponíveis",
-            "word": "Palavras Disponíveis"
+            "gesture": "Gestos Disponiveis",
+            "letter": "Letras Disponieis",
+            "word": "Palavras Disponiveis"
         }.get(self.mode, "Etiquetas Disponíveis")
         self._draw_labels_overlay(frame, title, self.labels)
         

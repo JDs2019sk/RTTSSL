@@ -30,13 +30,11 @@ class HandController:
         self.y_buffer = []
 
     def _get_screen_resolution(self):
-        """Obtém a resolução do ecrã para mapeamento do rato"""
         import tkinter as tk
         root = tk.Tk()
         return root.winfo_screenwidth(), root.winfo_screenheight()
         
     def _average_position(self, x, y):
-        """Calcula a média móvel das posições para suavizar o movimento"""
         self.x_buffer.append(x)
         self.y_buffer.append(y)
         
@@ -48,7 +46,6 @@ class HandController:
                 sum(self.y_buffer) / len(self.y_buffer))
 
     def process_frame(self, frame):
-        """Processa frame e controla o rato baseado na posição da mão"""
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(frame_rgb)
         
@@ -109,7 +106,6 @@ class HandController:
         return frame
         
     def _draw_landmarks(self, frame, landmarks):
-        """Desenha os pontos de referência da mão com conexões"""
         height, width = frame.shape[:2]
         
         connections = [

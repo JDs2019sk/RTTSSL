@@ -71,11 +71,11 @@ class RTTSSL:
                 }
             },
             'performance': {
-                'target_fps': 30,
+                'target_fps': 60,
                 'enable_threading': True,
                 'enable_gpu': True,
                 'optimize_resolution': True,
-                'notification_duration': 3.0
+                'notification_duration': 3.5
             }
         }
 
