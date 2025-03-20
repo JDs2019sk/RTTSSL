@@ -42,6 +42,7 @@ recordings/
 *.json
 data/
 prints/
+faces/
 
 # System
 .DS_Store
