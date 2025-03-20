@@ -103,8 +103,6 @@ See [Training file](docs/TRAINING.md) for detailed training instructions.
 | `R` | Retrain Gesture    | Retrain a specific gesture from scratch      |
 | `I` | Show Training Info | Show training information                    |
 
-For detailed training instructions, see [Training Guide](docs/TRAINING.md).
-
 ### Camera Test Controls
 
 | Key | Function     | Description             |
