@@ -134,7 +134,73 @@ RTTSSL/
 └── gpu_test.py           # GPU test for performance tracking (NVIDIA only)
 ```
 
-#### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/`]
+#### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/ faces/`]
+
+## 🐋 Docker Support
+
+You can run RTTSSL inside a Docker container. Note that camera access and GPU support require additional configuration.
+
+### Prerequisites
+
+- Docker installed on your system
+- NVIDIA Container Toolkit (for GPU support)
+
+### Build and Run
+
+1. Build the Docker image:
+
+```bash
+docker build -t rttssl .
+```
+
+2. Run with CPU only:
+
+```bash
+docker run -it --rm \
+  --device=/dev/video0:/dev/video0 \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  rttssl
+```
+
+3. Run with NVIDIA GPU support:
+
+```bash
+docker run -it --rm \
+  --gpus all \
+  --device=/dev/video0:/dev/video0 \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  rttssl
+```
+
+### Docker Notes
+
+- Camera access requires passing the video device to the container
+- GUI apps need X11 socket sharing and DISPLAY variable
+- GPU support requires NVIDIA Container Toolkit
+- Models and datasets can be persisted using Docker volumes
+
+### Troubleshooting Docker
+
+1. Allow X11 connections:
+
+```bash
+xhost +local:docker
+```
+
+2. Check camera permissions:
+
+```bash
+ls -l /dev/video0
+sudo usermod -a -G video $USER
+```
+
+3. Verify GPU access:
+
+```bash
+docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
+```
 
 ## 📝 License
 
