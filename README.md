@@ -1,15 +1,15 @@
-# 🤖 RTTSSL - Real-Time Translation System for Sign Language
-
-RTTSSL is a Python-based system designed to visually translate letters, words and gestures in real time.
+<h1 align="center">🤖 RTTSSL</h1>
+<h2 align="center">Real-Time Translation System for Sign Language</h2>
+<p align="center">RTTSSL is a Python-based system designed to visually translate letters, words and gestures in real time.</p>
 
 ## 💡 Features
 
-- Real-time gesture recognition and translation
-- Sign language letter and word detection
-- Facial Recognition
-- Model training capabilities
-- Recording method for your translations
-- Performance monitoring and optimization
+- 🤟 Real-time gesture recognition and translation
+- 🆗 Sign language letter and word detection
+- 😑 Facial Recognition
+- 💾 Model training capabilities
+- 🎥 Recording method for your translations
+- 📊 Performance monitoring and optimization
 
 ## 🔤 Requirements
 
@@ -140,4 +140,4 @@ RTTSSL/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Created by Joel Dias (PAP Project TIIGR 22/25)
+## 👍 Created by Joel Dias (PAP 24/25)
