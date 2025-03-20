@@ -136,6 +136,7 @@ RTTSSL/
 
 #### Some folders will not be present, but they will be created by executing the program. [`data/ datasets/ logs/ models/ recordings/ faces/ test_images`]
 
+<<<<<<< HEAD
 ## 🐋 Docker Support
 
 You can run RTTSSL inside a Docker container. Note that camera access and GPU support require additional configuration.
@@ -209,6 +210,8 @@ sudo usermod -a -G video $USER
 ```bash
 docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
 ```
+=======
+>>>>>>> 2c8a8179c3a9bf3022b4fc4fcbabf080632a248c
 
 ## 📝 License
 
