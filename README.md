@@ -3,7 +3,10 @@
       <p align="center">RTTSSL is a Python-based system designed to visually translate letters, words and gestures in real time.</p>
       <p align="center">
          <a href="https://github.com/JDs2019sk/RTTSSL/blob/main/LICENSE">
-           <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License">
+           <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License">
+      </a>
+       <a href="https://github.com/JDs2019sk/RTTSSL/blob/main/docs/TRAINING.md">
+           <img src="https://img.shields.io/badge/Training-Guide-green?style=flat-square" alt="Training Guide">
       </a>
    </p>
 
