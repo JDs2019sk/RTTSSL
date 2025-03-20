@@ -1,7 +1,7 @@
 <h1 align="center">🤖 RTTSSL</h1>
    <h2 align="center">Real-Time Translation System for Sign Language</h2>
       <p align="center">RTTSSL is a Python-based system designed to visually translate letters, words and gestures in real time.</p>
-      <p>
+      <p align="center">
          <a href="https://github.com/JDs2019sk/RTTSSL/blob/main/LICENSE">
            <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License">
       </a>
